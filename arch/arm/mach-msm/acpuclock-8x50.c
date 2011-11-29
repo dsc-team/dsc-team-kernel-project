@@ -632,7 +632,7 @@ static void __init acpu_freq_tbl_fixup(void)
 		break;
 	case 0x30:
 	case 0x00:
-		max_acpu_khz = 998400;
+		max_acpu_khz = 1152000;
 		break;
 	case 0x10:
 		max_acpu_khz = 1267200;
