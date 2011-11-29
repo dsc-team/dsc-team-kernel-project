@@ -1,0 +1,84 @@
+#ifndef _8XXX_IRQ_REGISTERS_H_
+#define _8XXX_IRQ_REGISTERS_H_
+
+#define VIC_REG(off) (MSM_VIC_BASE + (off))
+
+#define VIC_INT_SELECT0     VIC_REG(0x0000)  /* 1: FIQ, 0: IRQ */
+#define VIC_INT_SELECT1     VIC_REG(0x0004)  /* 1: FIQ, 0: IRQ */
+#define VIC_INT_SELECT2     VIC_REG(0x0008)  /* 1: FIQ, 0: IRQ */
+#define VIC_INT_SELECT3     VIC_REG(0x000C)  /* 1: FIQ, 0: IRQ */
+#define VIC_INT_EN0         VIC_REG(0x0010)
+#define VIC_INT_EN1         VIC_REG(0x0014)
+#define VIC_INT_EN2         VIC_REG(0x0018)
+#define VIC_INT_EN3         VIC_REG(0x001C)
+#define VIC_INT_ENCLEAR0    VIC_REG(0x0020)
+#define VIC_INT_ENCLEAR1    VIC_REG(0x0024)
+#define VIC_INT_ENCLEAR2    VIC_REG(0x0028)
+#define VIC_INT_ENCLEAR3    VIC_REG(0x002C)
+#define VIC_INT_ENSET0      VIC_REG(0x0030)
+#define VIC_INT_ENSET1      VIC_REG(0x0034)
+#define VIC_INT_ENSET2      VIC_REG(0x0038)
+#define VIC_INT_ENSET3      VIC_REG(0x003C)
+#define VIC_INT_TYPE0       VIC_REG(0x0040)  /* 1: EDGE, 0: LEVEL  */
+#define VIC_INT_TYPE1       VIC_REG(0x0044)  /* 1: EDGE, 0: LEVEL  */
+#define VIC_INT_TYPE2       VIC_REG(0x0048)  /* 1: EDGE, 0: LEVEL  */
+#define VIC_INT_TYPE3       VIC_REG(0x004C)  /* 1: EDGE, 0: LEVEL  */
+#define VIC_INT_POLARITY0   VIC_REG(0x0050)  /* 1: NEG, 0: POS */
+#define VIC_INT_POLARITY1   VIC_REG(0x0054)  /* 1: NEG, 0: POS */
+#define VIC_INT_POLARITY2   VIC_REG(0x0058)  /* 1: NEG, 0: POS */
+#define VIC_INT_POLARITY3   VIC_REG(0x005C)  /* 1: NEG, 0: POS */
+#define VIC_NO_PEND_VAL     VIC_REG(0x0060)
+
+#if defined(CONFIG_ARCH_MSM_SCORPION)
+#define VIC_NO_PEND_VAL_FIQ VIC_REG(0x0064)
+#define VIC_INT_MASTEREN    VIC_REG(0x0068)  /* 1: IRQ, 2: FIQ     */
+#define VIC_CONFIG          VIC_REG(0x006C)  /* 1: USE SC VIC */
+#else
+#define VIC_INT_MASTEREN    VIC_REG(0x0064)  /* 1: IRQ, 2: FIQ     */
+#define VIC_PROTECTION      VIC_REG(0x006C)  /* 1: ENABLE          */
+#define VIC_CONFIG          VIC_REG(0x0068)  /* 1: USE ARM1136 VIC */
+#endif
+
+#define VIC_IRQ_STATUS0     VIC_REG(0x0080)
+#define VIC_IRQ_STATUS1     VIC_REG(0x0084)
+#define VIC_IRQ_STATUS2     VIC_REG(0x0088)
+#define VIC_IRQ_STATUS3     VIC_REG(0x008C)
+#define VIC_FIQ_STATUS0     VIC_REG(0x0090)
+#define VIC_FIQ_STATUS1     VIC_REG(0x0094)
+#define VIC_FIQ_STATUS2     VIC_REG(0x0098)
+#define VIC_FIQ_STATUS3     VIC_REG(0x009C)
+#define VIC_RAW_STATUS0     VIC_REG(0x00A0)
+#define VIC_RAW_STATUS1     VIC_REG(0x00A4)
+#define VIC_RAW_STATUS2     VIC_REG(0x00A8)
+#define VIC_RAW_STATUS3     VIC_REG(0x00AC)
+#define VIC_INT_CLEAR0      VIC_REG(0x00B0)
+#define VIC_INT_CLEAR1      VIC_REG(0x00B4)
+#define VIC_INT_CLEAR2      VIC_REG(0x00B8)
+#define VIC_INT_CLEAR3      VIC_REG(0x00BC)
+#define VIC_SOFTINT0        VIC_REG(0x00C0)
+#define VIC_SOFTINT1        VIC_REG(0x00C4)
+#define VIC_SOFTINT2        VIC_REG(0x00C8)
+#define VIC_SOFTINT3        VIC_REG(0x00CC)
+#define VIC_IRQ_VEC_RD      VIC_REG(0x00D0)  /* pending int # */
+#define VIC_IRQ_VEC_PEND_RD VIC_REG(0x00D4)  /* pending vector addr */
+#define VIC_IRQ_VEC_WR      VIC_REG(0x00D8)
+
+#if defined(CONFIG_ARCH_MSM_SCORPION)
+#define VIC_FIQ_VEC_RD      VIC_REG(0x00DC)
+#define VIC_FIQ_VEC_PEND_RD VIC_REG(0x00E0)
+#define VIC_FIQ_VEC_WR      VIC_REG(0x00E4)
+#define VIC_IRQ_IN_SERVICE  VIC_REG(0x00E8)
+#define VIC_IRQ_IN_STACK    VIC_REG(0x00EC)
+#define VIC_FIQ_IN_SERVICE  VIC_REG(0x00F0)
+#define VIC_FIQ_IN_STACK    VIC_REG(0x00F4)
+#define VIC_TEST_BUS_SEL    VIC_REG(0x00F8)
+#define VIC_IRQ_CTRL_CONFIG VIC_REG(0x00FC)
+#else
+#define VIC_IRQ_IN_SERVICE  VIC_REG(0x00E0)
+#define VIC_IRQ_IN_STACK    VIC_REG(0x00E4)
+#define VIC_TEST_BUS_SEL    VIC_REG(0x00E8)
+#endif
+
+#define VIC_VECTPRIORITY(n) VIC_REG(0x0200+((n) * 4))
+#define VIC_VECTADDR(n)     VIC_REG(0x0400+((n) * 4))
+#endif

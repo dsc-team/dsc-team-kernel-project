@@ -1,0 +1,44 @@
+#
+# Miscellaneous I2C chip drivers configuration
+#
+# *** DEPRECATED! Do not add new entries! See Makefile ***
+#
+
+menu "Miscellaneous I2C Chip support"
+
+config SENSORS_MT9T013
+	tristate "MT9T013 Camera Driver"
+	depends on I2C
+	default y
+	help
+	 MT9T013 Camera Driver implemented by HTC.
+
+# Jagan+
+config GSENSOR_BOSCH_BMA150
+        tristate "Bosch BMA150 accelerometer with using I2C interface"
+        default y
+        help
+          Say Y here if you want support for the BMA150 accelerometer
+          device.
+
+          To compile this driver as a module, choose M here: the
+          module will be called gsensor-bosch-bma150.
+
+config ECOMPASS_AKM_AK8973S
+        tristate "AKM AK8973S geomagnetism detection with using I2C interface"
+        default y
+        help
+          Say Y here if you want support for the  AK8973S geomagnetism
+          detection device.
+
+          To compile this driver as a module, choose M here: the
+          module will be called ecompass-akm-ak8973s.
+config BCOM_FM
+        tristate "Broadcom FM"
+        depends on I2C
+        default n
+        help
+          Broadcom 4325 FM I2C driver
+# Jagan-
+
+endmenu

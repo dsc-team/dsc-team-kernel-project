@@ -1,0 +1,11 @@
+menu "module to reset chip QSD8X50"
+
+config RESET_MODULE
+	tristate "reset the QSD8x50 chip"
+	depends on ARCH_MSM || ARCH_QSD8X50
+	default m
+	help
+	  Say Y here if you want to generate a reset module.
+	  To compile this driver as a module, choose M here.
+	  You may reset chip QSD8x50 by inserting this module.
+endmenu
