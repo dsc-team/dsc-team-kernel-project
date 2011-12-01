@@ -12,8 +12,8 @@ How to prepare your own streak kernel.
 
 uncompress both archives in some directory for example in linux:
 
-mkdir /usr/srd/dell
-cd  /usr/srd/dell
+mkdir /usr/src/dell
+cd  /usr/src/dell
 wget http://dl.google.com/android/android-sdk_r15-linux.tgz
 wget http://dl.google.com/android/ndk/android-ndk-r7-linux-x86.tar.bz2
 
@@ -56,7 +56,7 @@ and below:
 OK, that was long part, now tricky one - making boot.img
 
 extract downloaded file mkboot.tar.gz in some directory 
-put in same directory downloaded extract-ramdisk.pl
+put in the same directory downloaded extract-ramdisk.pl
 this will be your working directory.
  
 now, get boot.img from your favourite rom, and place in working directory.
