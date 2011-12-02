@@ -73,7 +73,7 @@ struct clkctl_acpu_speed {
 
 struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
 	{ 0, 19200, ACPU_PLL_TCXO, 0, 0, 0, 0, 14000, 0, 0, 1000},
-	{ 0, 128000, ACPU_PLL_1, 1, 5, 0, 0, 14000, 2, 0, 1000},
+	{ 1, 128000, ACPU_PLL_1, 1, 5, 0, 0, 14000, 2, 0, 1000},
 	{ 1, 245760, ACPU_PLL_0, 4, 0, 0, 0, 29000, 0, 0, 1000},
 	/* Update AXI_S and PLL0_S macros if above row numbers change. */
 	{ 1, 384000, ACPU_PLL_3, 0, 0, 0, 0, 58000, 1, 0xA, 1000},
