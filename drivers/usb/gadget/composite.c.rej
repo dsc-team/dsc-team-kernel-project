@@ -1,0 +1,30 @@
+--- drivers/usb/gadget/composite.c	2010-09-29 04:09:08.000000000 +0300
++++ drivers/usb/gadget/composite.c	2011-10-06 06:08:29.000000000 +0300
+@@ -949,7 +1060,26 @@
+ 		 */
+ 		switch (ctrl->bRequestType & USB_RECIP_MASK) {
+ 		case USB_RECIP_INTERFACE:
+-			f = cdev->config->interface[intf];
++
++			if (cdev->config == NULL)
++				return value;
++
++			if (w_index >= cdev->config->next_interface_id)
++				return value;
++			/* Find correct function */
++			for (id = 0; id < MAX_CONFIG_INTERFACES; id++) {
++				f = cdev->config->interface[id];
++				if (!f)
++					break;
++				if (f->disabled)
++					continue;
++				if (!tmp)
++					break;
++				tmp--;
++			}
++
++			if (tmp)
++				f = NULL;
+ 			break;
+ 
+ 		case USB_RECIP_ENDPOINT:

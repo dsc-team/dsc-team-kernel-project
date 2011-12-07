@@ -1,0 +1,34 @@
+--- drivers/gpu/drm/drm_vm.c	2010-09-29 04:09:08.000000000 +0300
++++ drivers/gpu/drm/drm_vm.c	2011-10-06 06:07:40.000000000 +0300
+@@ -444,7 +437,6 @@
+ 		  vma->vm_start, vma->vm_end - vma->vm_start);
+ 	atomic_dec(&dev->vma_count);
+ 
+-	mutex_lock(&dev->struct_mutex);
+ 	list_for_each_entry_safe(pt, temp, &dev->vmalist, head) {
+ 		if (pt->vma == vma) {
+ 			list_del(&pt->head);
+@@ -452,6 +444,23 @@
+ 			break;
+ 		}
+ 	}
++}
++
++/**
++ * \c close method for all virtual memory types.
++ *
++ * \param vma virtual memory area.
++ *
++ * Search the \p vma private data entry in drm_device::vmalist, unlink it, and
++ * free it.
++ */
++static void drm_vm_close(struct vm_area_struct *vma)
++{
++	struct drm_file *priv = vma->vm_file->private_data;
++	struct drm_device *dev = priv->minor->dev;
++
++	mutex_lock(&dev->struct_mutex);
++	drm_vm_close_locked(vma);
+ 	mutex_unlock(&dev->struct_mutex);
+ }
+ 

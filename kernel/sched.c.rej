@@ -1,0 +1,14 @@
+--- kernel/sched.c	2010-09-29 04:09:08.000000000 +0300
++++ kernel/sched.c	2011-10-06 06:08:47.000000000 +0300
+@@ -8115,6 +8144,11 @@
+ 	if (unlikely(running))
+ 		tsk->sched_class->put_prev_task(rq, tsk);
+ 
++#ifdef CONFIG_FAIR_GROUP_SCHED
++	if (tsk->sched_class->prep_move_group)
++		tsk->sched_class->prep_move_group(tsk, on_rq);
++#endif
++
+ 	set_task_rq(tsk, task_cpu(tsk));
+ 
+ #ifdef CONFIG_FAIR_GROUP_SCHED
