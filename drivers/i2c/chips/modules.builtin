@@ -1,0 +1,3 @@
+kernel/drivers/i2c/chips/gsensor-bosch-bma150.ko
+kernel/drivers/i2c/chips/ecompass-akm-ak8973s.ko
+kernel/drivers/i2c/chips/bcom_fm.ko

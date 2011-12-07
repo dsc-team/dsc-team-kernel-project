@@ -1,0 +1,1 @@
+cmd_drivers/net/wireless/libra/librasdioif.ko := arm-none-linux-gnueabi-ld -EL -r  -T /usr/src/dell/abc/dsc-team-kernel-project/scripts/module-common.lds --build-id -o drivers/net/wireless/libra/librasdioif.ko drivers/net/wireless/libra/librasdioif.o drivers/net/wireless/libra/librasdioif.mod.o
