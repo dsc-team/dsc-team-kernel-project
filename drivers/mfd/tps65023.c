@@ -55,6 +55,27 @@ int tps65023_set_dcdc1_level(int mvolts)
 		ret = i2c_smbus_write_byte_data(tpsclient,
 				TPS65023_CON_CTRL2, 0x80);
 
+	if (ret) {
+
+	    printk("I2C bus was NAKed (%d), repeat one\n",ret);
+
+	    ret = i2c_smbus_write_byte_data(tpsclient, TPS65023_DEFCORE, val);
+
+	    if (!ret)
+	    ret = i2c_smbus_write_byte_data(tpsclient,
+	    TPS65023_CON_CTRL2, 0x80);
+	}
+
+	if (ret) {
+
+	    printk("I2C bus was NAKed again (%d), repeat two\n",ret);
+
+	    ret = i2c_smbus_write_byte_data(tpsclient, TPS65023_DEFCORE, val);
+
+	    if (!ret)
+	    ret = i2c_smbus_write_byte_data(tpsclient,
+	    TPS65023_CON_CTRL2, 0x80);
+	}
 	return ret;
 }
 EXPORT_SYMBOL(tps65023_set_dcdc1_level);
