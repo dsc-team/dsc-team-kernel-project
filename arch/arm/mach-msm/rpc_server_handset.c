@@ -459,12 +459,23 @@ static struct msm_rpc_server hs_rpc_server = {
 	.rpc_call	= handle_hs_rpc_call,
 };
 
+
+//n0p
+struct timespec btime;
+long curtime, prevtime;
+#define KEYDELAY 35
+
 static int process_subs_srvc_callback(struct hs_event_cb_recv *recv)
 {
 	if (!recv)
 		return -ENODATA;
+	getnstimeofday(&btime);
+	curtime = ((btime.tv_sec) * 1000 + btime.tv_nsec / 1000000);
+	if ((curtime-prevtime)>KEYDELAY) {
+		prevtime=curtime;
+		report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
+	}
 
-	report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
 
 	return 0;
 }
