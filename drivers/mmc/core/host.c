@@ -237,7 +237,6 @@ void mmc_remove_host(struct mmc_host *host)
 	device_del(&host->class_dev);
 
 	led_trigger_unregister_simple(host->led);
-
 }
 
 EXPORT_SYMBOL(mmc_remove_host);

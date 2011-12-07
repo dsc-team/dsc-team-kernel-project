@@ -12,6 +12,7 @@
 
 #include <linux/err.h>
 #include <linux/slab.h>
+
 #include <linux/mmc/host.h>
 #include <linux/mmc/card.h>
 #include <linux/mmc/mmc.h>
@@ -449,6 +450,7 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_decode_scr(card);
 		if (err < 0)
 			goto free_card;
+
 		/*
 		 * Fetch switch information from card.
 		 */

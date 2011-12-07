@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  *
  */
+
 #ifndef __ASM_ARCH_MEMORY_H
 #define __ASM_ARCH_MEMORY_H
 
