@@ -1,1 +1,0 @@
-cmd_crypto/ansi_cprng.ko := arm-none-linux-gnueabi-ld -EL -r  -T /usr/src/dell/abc/dsc-team-kernel-project/scripts/module-common.lds --build-id -o crypto/ansi_cprng.ko crypto/ansi_cprng.o crypto/ansi_cprng.mod.o

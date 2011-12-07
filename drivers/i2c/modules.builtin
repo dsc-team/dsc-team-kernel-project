@@ -1,6 +1,0 @@
-kernel/drivers/i2c/i2c-core.ko
-kernel/drivers/i2c/i2c-dev.ko
-kernel/drivers/i2c/busses/i2c-msm.ko
-kernel/drivers/i2c/chips/gsensor-bosch-bma150.ko
-kernel/drivers/i2c/chips/ecompass-akm-ak8973s.ko
-kernel/drivers/i2c/chips/bcom_fm.ko

@@ -1,1 +1,0 @@
-cmd_drivers/misc/built-in.o :=  arm-none-linux-gnueabi-ld -EL    -r -o drivers/misc/built-in.o drivers/misc/pmem.o drivers/misc/eeprom/built-in.o drivers/misc/cb710/built-in.o drivers/misc/msm_migrate_pages.o drivers/misc/sensors_daemon.o 

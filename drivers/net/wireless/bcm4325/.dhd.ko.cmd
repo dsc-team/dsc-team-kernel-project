@@ -1,1 +1,0 @@
-cmd_drivers/net/wireless/bcm4325/dhd.ko := arm-none-linux-gnueabi-ld -EL -r  -T /usr/src/dell/abc/dsc-team-kernel-project/scripts/module-common.lds --build-id -o drivers/net/wireless/bcm4325/dhd.ko drivers/net/wireless/bcm4325/dhd.o drivers/net/wireless/bcm4325/dhd.mod.o

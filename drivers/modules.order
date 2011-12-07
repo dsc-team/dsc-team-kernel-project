@@ -1,5 +1,0 @@
-kernel/drivers/scsi/scsi_wait_scan.ko
-kernel/drivers/net/wireless/bcm4325/dhd.ko
-kernel/drivers/net/wireless/bcm4325/em/dhd_test.ko
-kernel/drivers/net/wireless/libra/librasdioif.ko
-kernel/drivers/media/video/gspca/gspca_main.ko
