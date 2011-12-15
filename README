@@ -75,4 +75,29 @@ if something goes wrong - transfer back your original kernel:
 ./fastboot -i 0x413c flash boot boot.img
 
 
+
+Update: 
+@Team:
+
+Just created new branch "experimental14" in our github
+this is same kernel as our stable, just patched to version 2.6.35.14
+
+how I did it:
+1. downloaded clean source of 2.6.35.7
+2. downloaded clean source of 2.6.35.14
+3. diff 2.6.35.7 vs our kernel (this generate dell additions to kernel as a patch
+4. diff 2.6.35.7 vs 2.6.35.14 (this generate version upgrade patch )
+5. patched those 2 patches over clean 2.6.35.7 (there was some rejects, i added them manually)
+
+now there are 2 branches in our github:
+- master (our stable based on dell open-source 405)
+- experimental14 - cloned with above steps from master
+
+you can clone locally in some empty dir with command:
+
+git clone git@github.com:dsc-team/dsc-team-kernel-project.git -b experimental14
+
+
+
+
 LTrifonov
