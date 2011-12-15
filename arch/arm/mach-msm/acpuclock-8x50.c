@@ -31,6 +31,9 @@
 #include "avs.h"
 #include "clock.h"
 
+//n0p and DSC-Team
+//comment line below to stop overclocking...
+#define OVERCLOCK_DSC 
 #define SHOT_SWITCH 4
 #define HOP_SWITCH 5
 #define SIMPLE_SLEW 6
@@ -72,6 +75,20 @@ struct clkctl_acpu_speed {
 };
 
 struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
+#ifdef OVERCLOCK_DSC
+	{ 1,128000,0,4,0,0,0,29000,0,0,950 },
+	{ 1,245760,0,4,0,0,0,29000,0,0,1000 },
+	{ 1,384000,3,0,0,0,0,58000,1,10,1000 },
+	{ 1,576000,3,0,0,0,0,117000,1,15,1000 },
+	{ 1,768000,3,0,0,0,0,128000,1,20,1125 },
+	{ 1,998400,3,0,0,0,0,128000,1,26,1250 },
+	{ 1,1075200,3,0,0,0,0,128000,1,26,1250 },
+	{ 1,1152000,3,0,0,0,0,160000,1,27,1400 },
+	{ 1,1190400,3,0,0,0,0,160000,1,28,1425 },
+	{ 1,1228800,3,0,0,0,0,160000,1,29,1475 },
+	{ 1,1267200,3,0,0,0,0,160000,1,30,1525 },
+	{ 0,0,0,0,0,0,0,0,0,0,0 },
+#else
 	{ 0, 19200, ACPU_PLL_TCXO, 0, 0, 0, 0, 14000, 0, 0, 1000},
 	{ 1, 128000, ACPU_PLL_1, 1, 5, 0, 0, 14000, 2, 0, 1000},
 	{ 1, 245760, ACPU_PLL_0, 4, 0, 0, 0, 29000, 0, 0, 1000},
@@ -94,6 +111,7 @@ struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
 	{ 1, 1075200, ACPU_PLL_3, 0, 0, 0, 0, 128000, 1, 0x19, 1300},
 	{ 1, 1152000, ACPU_PLL_3, 0, 0, 0, 0, 128000, 1, 0x1A, 1400},
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+#endif
 };
 
 struct clkctl_acpu_speed acpu_freq_tbl_768[] = {
@@ -632,7 +650,11 @@ static void __init acpu_freq_tbl_fixup(void)
 		break;
 	case 0x30:
 	case 0x00:
+#ifdef OVERCLOCK_DSC
+		max_acpu_khz = 2000000;
+#else
 		max_acpu_khz = 1152000;
+#endif
 		break;
 	case 0x10:
 		max_acpu_khz = 1267200;
