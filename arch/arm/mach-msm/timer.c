@@ -950,7 +950,7 @@ static DEFINE_CLOCK_DATA(cd);
 
 unsigned long long notrace sched_clock(void)
 {
-	struct msm_clock *clock = &msm_clocks[MSM_CLOCK_DGT];
+	struct msm_clock *clock = &msm_clocks[MSM_GLOBAL_TIMER];
 	struct clocksource *cs = &clock->clocksource;
 	u32 cyc = cs->read(cs);
 	return cyc_to_sched_clock(&cd, cyc, (u32)~0);
@@ -958,7 +958,7 @@ unsigned long long notrace sched_clock(void)
 
 static void notrace msm_update_sched_clock(void)
 {
-	struct msm_clock *clock = &msm_clocks[MSM_CLOCK_DGT];
+	struct msm_clock *clock = &msm_clocks[MSM_GLOBAL_TIMER];
 	struct clocksource *cs = &clock->clocksource;
 	u32 cyc = cs->read(cs);
 	update_sched_clock(&cd, cyc, (u32)~0);
@@ -975,7 +975,7 @@ int read_current_timer(unsigned long *timer_val)
 
 static void __init msm_sched_clock_init(void)
 {
-	struct msm_clock *clock = &msm_clocks[MSM_CLOCK_DGT];
+	struct msm_clock *clock = &msm_clocks[MSM_GLOBAL_TIMER];
 
 	init_sched_clock(&cd, msm_update_sched_clock, 32, clock->freq);
 }
