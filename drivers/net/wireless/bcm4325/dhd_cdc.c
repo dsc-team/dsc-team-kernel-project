@@ -71,6 +71,11 @@
 #define ROUND_UP_MARGIN	2048 	/* Biggest SDIO block size possible for
 				 * round off at the end of buffer
 				 */
+//n0p - this should be set to:
+//0 - disable completely
+//1 - PM_FAST (middle value)
+//2 - default, PM_MAX mode
+#define DSC_WIFI_POWERMODE 2
 
 extern int q_wlan_flag;
 extern void msm_get_wlan_mac_addr(uint8_t *mac_addr, uint8_t length);
@@ -507,7 +512,14 @@ dhd_prot_dstats(dhd_pub_t *dhd)
 
 int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
+//n0p
+#if (DSC_WIFI_POWERMODE==0)
+	int power_mode = PM_OFF;
+#elif (DSC_WIFI_POWERMODE==1)
+        int power_mode = PM_FAST;
+#elif (DSC_WIFI_POWERMODE==2)
 	int power_mode = PM_MAX;
+#endif
 	wl_pkt_filter_enable_t	enable_parm;
 	char iovbuf[32];
 	int bcn_li_dtim = 3;
@@ -537,7 +549,12 @@ int dhd_set_suspend(int value, dhd_pub_t *dhd)
 			dhdcdc_set_ioctl(dhd, 0, WLC_SET_VAR, iovbuf, sizeof(iovbuf));
 #endif /* CONFIG_KT */
 		} else {
+//n0p
+#if (DSC_WIFI_POWERMODE==0)
+			power_mode = PM_OFF;
+#else
 			power_mode = PM_FAST;
+#endif
 			dhdcdc_set_ioctl(dhd, 0, WLC_SET_PM, (char *)&power_mode,
 				sizeof(power_mode));
 			/* disable pkt filter */
@@ -629,7 +646,12 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 	char eventmask[WL_EVENTING_MASK_LEN];
 	char iovbuf[WLC_IOCTL_SMLEN];	/*  Room for "event_msgs" + '\0' + bitvec  */
 	uint up = 0;
+	//n0p
+#if (DSC_WIFI_POWERMODE==0)
+	uint power_mode = PM_OFF;
+#else
 	uint power_mode = PM_FAST;
+#endif
 	uint32 dongle_align = DHD_SDALIGN;
 	uint32 glom = 0;
 	int ret;
