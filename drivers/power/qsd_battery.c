@@ -23,6 +23,15 @@
   #include <linux/earlysuspend.h>
 #endif
 
+#define TEST_MUGEN 0
+
+#if (TEST_MUGEN)
+static int is_mugen = 0;
+static int a_voltage = 0;
+static int c_voltage = 0;
+static int e_charger = 0;
+#endif
+
 static int bat_log_on  = 0;
 static int bat_log_on2 = 0;
 
@@ -336,6 +345,13 @@ static void qsd_bat_charge_log(void)
     reg30_3c[10], reg30_3c[11], reg30_3c[12]
     );
   MSG2("CHG_INT=%d, BAT_LOW=%d", gpio_get_value(qb_data.gpio_chg_int),gpio_get_value(qb_data.gpio_bat_low));
+
+#if (TEST_MUGEN)
+    if (reg30_3c[1]==0) is_mugen=1;
+    if (is_mugen) MSG2("MUGEN Battery");
+    is_mugen=1;
+#endif
+
 }
 
 
@@ -654,8 +670,31 @@ static void qsd_bat_work_func(struct work_struct *work)
       gag_data[GAG_AI]    = gag_reg_00_15[0x14] + (gag_reg_00_15[0x15]<<8);
       gag_data[GAG_SOC]   = gag_reg_2c_2d[0x00] + (gag_reg_2c_2d[0x01]<<8);
 
-      
-      
+//n0p
+#define HIGHEST_VOLT 4170
+//#define LOWEST_VOLT 3690
+#define LOWEST_VOLT 3400
+#define CHARGE_CORRECTION 30
+#define VSAMPLES 16
+
+#if (TEST_MUGEN)
+      if (is_mugen) {
+  if (gag_data[GAG_AI]>0) {
+		if (!e_charger) { a_voltage=0; e_charger=1; };
+		c_voltage=gag_data[GAG_VOLT]-CHARGE_CORRECTION;
+	} else {
+		if (e_charger) { a_voltage=0; e_charger=0; };
+		c_voltage=gag_data[GAG_VOLT];
+	};
+	if (a_voltage==0) a_voltage=c_voltage;
+        a_voltage = a_voltage*(VSAMPLES-1)+c_voltage;
+	a_voltage = a_voltage/VSAMPLES;
+	qb_data.bat_capacity =  (a_voltage - LOWEST_VOLT) / ((HIGHEST_VOLT-LOWEST_VOLT)/100) ;
+	if (qb_data.bat_capacity > 100) qb_data.bat_capacity = 100;
+	MSG2(" average mV: %d corrected mV: %d current real mV: %d mA: %d",a_voltage,c_voltage,gag_data[GAG_VOLT],gag_data[GAG_AI]);
+      } else {
+#endif
+
       if(gag_data[GAG_SOC] < 20)   
       {
         if(qb_data.low_bat_power_off)   
@@ -712,6 +751,11 @@ static void qsd_bat_work_func(struct work_struct *work)
         if(qb_data.bat_capacity > 100)
           qb_data.bat_capacity = 100;
       }
+
+#if TEST_MUGEN
+}
+#endif
+
       qb_data.bat_vol       = gag_data[GAG_VOLT];
       qb_data.bat_temp      = gag_data[GAG_TEMP];
       qb_data.gag_ctrl      = gag_data[GAG_CTRL];
