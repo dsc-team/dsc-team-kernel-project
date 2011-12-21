@@ -58,7 +58,6 @@ enum {
 	ACPU_PLL_3,
 	ACPU_PLL_END,
 };
-
 struct clkctl_acpu_speed {
 	unsigned int     use_for_scaling;
 	unsigned int     acpuclk_khz;
@@ -89,6 +88,9 @@ struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
 	{ 1,1190400,3,0,0,0,0,160000,1,28,1425,0},
 	{ 1,1228800,3,0,0,0,0,160000,1,29,1475,0},
 	{ 1,1267200,3,0,0,0,0,160000,1,30,1525,0},
+        { 1,1344000,3,0,0,0,0,160000,1,30,1550,0},
+        { 1,1420800,3,0,0,0,0,160000,1,30,1575,0},
+//	{ 1,1497600,3,0,0,0,0,192000,1,31,1600,0},
 	{ 0,0,0,0,0,0,0,0,0,0,0 },
 #else
 	{ 0, 19200, ACPU_PLL_TCXO, 0, 0, 0, 0, 14000, 0, 0, 1000},
@@ -654,7 +656,7 @@ static void __init acpu_freq_tbl_fixup(void)
 	case 0x00:
 #ifdef OVERCLOCK_DSC
 //		max_acpu_khz = 1152000;
-		max_acpu_khz = 1267200;
+		max_acpu_khz = 2000000;
 #else
 		max_acpu_khz = 1152000;
 #endif
