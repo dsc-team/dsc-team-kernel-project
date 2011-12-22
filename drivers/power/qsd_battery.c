@@ -23,7 +23,7 @@
   #include <linux/earlysuspend.h>
 #endif
 
-#define TEST_MUGEN 0
+#define TEST_MUGEN 1
 
 #if (TEST_MUGEN)
 static int is_mugen = 0;
@@ -671,15 +671,15 @@ static void qsd_bat_work_func(struct work_struct *work)
       gag_data[GAG_SOC]   = gag_reg_2c_2d[0x00] + (gag_reg_2c_2d[0x01]<<8);
 
 //n0p
-#define HIGHEST_VOLT 4170
+#define HIGHEST_VOLT 4130
 //#define LOWEST_VOLT 3690
-#define LOWEST_VOLT 3400
-#define CHARGE_CORRECTION 30
-#define VSAMPLES 16
+#define LOWEST_VOLT 3550
+#define CHARGE_CORRECTION 70
+#define VSAMPLES 32
 
 #if (TEST_MUGEN)
       if (is_mugen) {
-  if (gag_data[GAG_AI]>0) {
+	if (gag_data[GAG_AI]>0) {
 		if (!e_charger) { a_voltage=0; e_charger=1; };
 		c_voltage=gag_data[GAG_VOLT]-CHARGE_CORRECTION;
 	} else {
@@ -691,6 +691,7 @@ static void qsd_bat_work_func(struct work_struct *work)
 	a_voltage = a_voltage/VSAMPLES;
 	qb_data.bat_capacity =  (a_voltage - LOWEST_VOLT) / ((HIGHEST_VOLT-LOWEST_VOLT)/100) ;
 	if (qb_data.bat_capacity > 100) qb_data.bat_capacity = 100;
+	if (qb_data.bat_capacity < 0  ) qb_data.bat_capacity = 0;
 	MSG2(" average mV: %d corrected mV: %d current real mV: %d mA: %d",a_voltage,c_voltage,gag_data[GAG_VOLT],gag_data[GAG_AI]);
       } else {
 #endif
