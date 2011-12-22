@@ -33,7 +33,11 @@
 
 //n0p and DSC-Team
 //comment line below to stop overclocking...
-#define OVERCLOCK_DSC 
+//DSC_CPUCONTROL
+//0 - default Quallcom CPU table
+//1 - overclocked table, default to Phoenix kernel
+//2 - highpower CPU clocktable
+#define DSC_CPUCONTROL 1
 #define SHOT_SWITCH 4
 #define HOP_SWITCH 5
 #define SIMPLE_SLEW 6
@@ -74,7 +78,24 @@ struct clkctl_acpu_speed {
 };
 
 struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
-#ifdef OVERCLOCK_DSC
+#if (DSC_CPUCONTROL==2)
+//overpowered table
+	{ 0,19200,-1,0,0,0,0,14000,0,0,1000,0},
+	{ 0,128000,1,1,5,0,0,14000,2,0,1000,0,},
+	{ 1,128000,0,4,0,0,0,29000,0,0,1000,0},
+	{ 1,245760,0,4,0,0,0,29000,0,0,1050,0},
+	{ 1,384000,3,0,0,0,0,58000,1,10,1075,0},
+	{ 1,576000,3,0,0,0,0,117000,1,15,1100,0},
+	{ 1,768000,3,0,0,0,0,128000,1,20,1200,0},
+	{ 1,998400,3,0,0,0,0,128000,1,26,1350,0},
+	{ 1,1075200,3,0,0,0,0,128000,1,26,1400,0},
+	{ 1,1152000,3,0,0,0,0,160000,1,27,1425,0},
+	{ 1,1190400,3,0,0,0,0,160000,1,28,1450,0},
+	{ 1,1228800,3,0,0,0,0,160000,1,29,1500,0},
+	{ 1,1267200,3,0,0,0,0,160000,1,30,1550,0},
+	{ 0,0,0,0,0,0,0,0,0,0,0 },
+#elif (DSC_CPUCONTROL==1)
+//default Phoenix table
 	{ 0,19200,-1,0,0,0,0,14000,0,0,1000,0},
 	{ 0,128000,1,1,5,0,0,14000,2,0,1000,0,},
 	{ 1,128000,0,4,0,0,0,29000,0,0,950,0},
