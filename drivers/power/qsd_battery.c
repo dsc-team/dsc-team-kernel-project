@@ -1,4 +1,3 @@
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/uaccess.h>
@@ -23,7 +22,7 @@
   #include <linux/earlysuspend.h>
 #endif
 
-#define TEST_MUGEN 1
+#define TEST_MUGEN 0
 
 #if (TEST_MUGEN)
 static int is_mugen = 0;
