@@ -675,8 +675,7 @@ static void __init acpu_freq_tbl_fixup(void)
 		break;
 	case 0x30:
 	case 0x00:
-//#ifdef OVERCLOCK_DSC
-//		max_acpu_khz = 1152000;
+#if (DSC_CPUCONTROL)
 		max_acpu_khz = 2000000;
 #else
 		max_acpu_khz = 1152000;
