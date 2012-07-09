@@ -1032,6 +1032,7 @@ void kgsl_destroy_mem_entry(struct kgsl_mem_entry *entry)
 		vfree((void *)entry->memdesc.physaddr);
 	else if (KGSL_MEMFLAGS_HOSTADDR & entry->memdesc.priv &&
 			entry->file_ptr)
+		//printk("DSC: fixme");
 		put_ashmem_file(entry->file_ptr);
 	else
 		kgsl_put_phys_file(entry->file_ptr);
@@ -1336,6 +1337,8 @@ static int kgsl_ioctl_map_user_mem(struct kgsl_process_private *private,
 			result = -EINVAL;
 			goto error;
 		}
+//n0p
+
 		if (param.memtype == KGSL_USER_MEM_TYPE_ASHMEM) {
 			struct file *ashmem_vm_file;
 			if (get_ashmem_file(param.fd, &file_ptr,
@@ -1440,6 +1443,7 @@ error_free_entry:
 
 error_put_file_ptr:
 	if ((param.memtype != KGSL_USER_MEM_TYPE_PMEM) && file_ptr)
+                //printk("DSC: fixme");
 		put_ashmem_file(file_ptr);
 	else
 		kgsl_put_phys_file(file_ptr);

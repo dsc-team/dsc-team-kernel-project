@@ -89,7 +89,7 @@
 #define MAX_DATA_BUF (32 * 1024)	/* which should be more than
 						* and to hold biggest glom possible
 						*/
-#undef CONFIG_HAS_EARLYSUSPEND
+//#undef CONFIG_HAS_EARLYSUSPEND
 
 /* Packet alignment for most efficient SDIO (can change based on platform) */
 #ifndef DHD_SDALIGN
@@ -327,7 +327,7 @@ static const uint firstread = DHD_FIRSTREAD;
 #define HDATLEN (firstread - (SDPCM_HDRLEN))
 
 /* Retry count for register access failures */
-static const uint retry_limit = 50;
+static const uint retry_limit = 128;
 
 /* Force even SD lengths (some host controllers mess up on odd bytes) */
 static bool forcealign;
@@ -385,7 +385,7 @@ do { \
 do { \
 	retryvar = 0; \
 	do { \
-		if (retryvar) mdelay(5); \
+		if (retryvar) mdelay(8); \
 		W_REG(bus->dhd->osh, regaddr, regval); \
 	} while (bcmsdh_regfail(bus->sdh) && (++retryvar <= retry_limit)); \
 	if (retryvar) { \
@@ -803,7 +803,8 @@ dhdsdio_bussleep(dhd_bus_t *bus, bool sleep)
 		dhdsdio_clkctl(bus, CLK_AVAIL, FALSE);
 
 		/* Send misc interrupt to indicate OOB not needed */
-		#if 0
+//n0p
+		#if 1
 		W_SDREG(0, &regs->tosbmailboxdata, retries);
 		if (retries <= retry_limit)
 			W_SDREG(SMB_DEV_INT, &regs->tosbmailbox, retries);

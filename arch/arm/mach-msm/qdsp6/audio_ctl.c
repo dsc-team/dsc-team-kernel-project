@@ -155,7 +155,13 @@ static int q6_ioctl(struct inode *inode, struct file *file,
 			else
 			{
 				if( n == 0)
+#ifdef CONFIG_DSC_FORCE_SPEAKER_ENABLE
+//hPa
+//cm7 streak
+					q6audio_pmic_speaker_enable(1);
+#else
 					q6audio_pmic_speaker_enable(0);
+#endif
 				else
 					q6audio_pmic_speaker_enable(1);
 				

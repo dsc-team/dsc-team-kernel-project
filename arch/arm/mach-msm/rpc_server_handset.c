@@ -462,22 +462,49 @@ static struct msm_rpc_server hs_rpc_server = {
 
 //n0p
 struct timespec btime;
-long curtime, prevtime;
-#define KEYDELAY 35
+long int curtime, prevtime;
+
+#define KEYDELAY 70
 
 static int process_subs_srvc_callback(struct hs_event_cb_recv *recv)
 {
 	if (!recv)
 		return -ENODATA;
+
+//n0p - disable dejitter 
+//	report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
+//	return 0;
+//--
+
 	getnstimeofday(&btime);
-	curtime = ((btime.tv_sec) * 1000 + btime.tv_nsec / 1000000);
+
+        curtime = btime.tv_sec & 0xFFFFF;
+
+	curtime = (btime.tv_sec * 1000) + (btime.tv_nsec/1000000);
+
+        //printk("DSC: curtime: %d",btime.tv_sec);
+
 	if ((curtime-prevtime)>KEYDELAY) {
+                //filteron=0;
 		prevtime=curtime;
 		report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
+                //errorcount=0;
+		return 0;
 	}
 
+	//Stale timer workaround
+	if ((curtime-prevtime)<=0) {
+	//errorcount++;
+	//disarm filter
+	//if (errorcount>0) { prevtime=curtime; report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm)); errorcount=0; };
+	prevtime=curtime;
+        report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
+        //printk("DSC: DJT: Timer error count: %d", errorcount);
+	return 0;
+	}
 
 	return 0;
+
 }
 
 static void process_hs_rpc_request(uint32_t proc, void *data)

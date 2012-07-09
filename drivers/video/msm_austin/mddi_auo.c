@@ -60,6 +60,10 @@ static struct wake_lock lcd_idlelock;
 
 #define	BACKLIGHT_EARLY_SUSPEND
 
+static int t2_register=0x1BC;
+//static int vsync=1;
+module_param(t2_register,int,0644);
+//module_param(vsync,int,0644);
 
 static int auo_lcd_on(struct platform_device *pdev);
 static int auo_lcd_off(struct platform_device *pdev);
@@ -888,6 +892,11 @@ int mddi_os_engineer_mode_test(struct fb_info *info, void __user *p)
 #if !defined(MDDI_FB_PORTRAIT)
 				mddi_queue_register_write(0x3600, 0x63, FALSE, 0);
 #endif
+#ifdef CONFIG_DSC_ROTATE_MATRIX
+//hPa -miui
+				mddi_queue_register_write(0x3600, 0x03, FALSE, 0);
+//
+#endif
 				mddi_queue_register_write(0x2C00, 0, FALSE, 0);
 
 				
@@ -963,12 +972,17 @@ static void mddi_auo_prim_lcd_init(void)
   mddi_queue_register_write(0xC202, 0x32, FALSE, 0);
   mddi_queue_register_write(0xC100, 0x40, FALSE, 0);
   mddi_queue_register_write(0xC700, 0x8B, FALSE, 0);
-  mddi_queue_register_write(0xB102, 0xBC, FALSE, 0);
+  mddi_queue_register_write(0xB102, t2_register & 0xFF, FALSE, 0);
 
   mddi_queue_register_write(0x1100, 0, FALSE, 0);
   msleep(100);
 #if !defined(MDDI_FB_PORTRAIT)
   mddi_queue_register_write(0x3600, 0x63, FALSE, 0);
+#endif
+#ifdef CONFIG_DSC_ROTATE_MATRIX
+//hPa - miui  
+  mddi_queue_register_write(0x3600, 0x03, FALSE, 0);
+//
 #endif
   mddi_queue_register_write(0x3500, 0x0002, FALSE, 0);
   mddi_queue_register_write(0x4400, 0x0000, FALSE, 0);
@@ -1022,12 +1036,18 @@ static int auo_lcd_on(struct platform_device *pdev)
 			#if !defined(MDDI_FB_PORTRAIT)
 			  mddi_queue_register_write(0x3600, 0x63, FALSE, 0);
 			#else
+#ifdef CONFIG_DSC_ROTATE_MATRIX
+//hPa - miui
+                          mddi_queue_register_write(0x3600, 0x03, FALSE, 0);
+//
+#else
 			  mddi_queue_register_write(0x3600, 0x00, FALSE, 0);
+			#endif
 			#endif
 			  mddi_queue_register_write(0x3500, 0x0002, FALSE, 0);
 			  mddi_queue_register_write(0x4400, 0x0000, FALSE, 0);
 			  mddi_queue_register_write(0x4401, 0x0000, FALSE, 0);
-			  mddi_queue_register_write(0xB102, 0xBC, FALSE, 0);
+			  mddi_queue_register_write(0xB102, t2_register & 0xFF, FALSE, 0);
 
 			write_multi_mddi_reg(auo_lcd_bkl_init_array);
 			if(bkl_labc_stage == 0xFFFFFFFF)
@@ -1402,7 +1422,8 @@ static int __ref auo_init(void)
 		pinfo->pdest = DISPLAY_2;
 		pinfo->mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
 		pinfo->wait_cycle = 0;
-		pinfo->bpp = 18;
+		//pinfo->bpp = 18;
+		pinfo->bpp = 16;
 		pinfo->fb_num = 2;
 		if (panel_id ==0)
 		{
@@ -1416,11 +1437,13 @@ static int __ref auo_init(void)
 			pinfo->clk_min = 190000000;
 			pinfo->clk_max = 200000000;
 		}
+		//if (vsync) pinfo->lcd.vsync_enable = TRUE; else pinfo->lcd.vsync_enable = FALSE;
 		pinfo->lcd.vsync_enable = TRUE;
 		pinfo->lcd.refx100 = 6000;
 		pinfo->lcd.v_back_porch = 0;
 		pinfo->lcd.v_front_porch = 0;
 		pinfo->lcd.v_pulse_width = 0;
+		//if (vsync) pinfo->lcd.hw_vsync_mode = TRUE; else pinfo->lcd.hw_vsync_mode = FALSE;
 		pinfo->lcd.hw_vsync_mode = TRUE;
 		pinfo->lcd.vsync_notifier_period = 0;
 

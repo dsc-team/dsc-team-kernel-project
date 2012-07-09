@@ -46,6 +46,11 @@
 
 #if USE_AUO_5INCH
 
+#ifdef CONFIG_DSC_PORTRAIT
+//hPa
+#define TOUCH_FB_PORTRAIT 1	//cm7
+#endif
+
 #if defined(TOUCH_FB_PORTRAIT)
 	#define AUO_X_MAX	     480
 	#define AUO_Y_MAX	     800

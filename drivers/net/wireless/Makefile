@@ -18,14 +18,16 @@ obj-$(CONFIG_AT76C50X_USB)      += at76c50x-usb.o
 
 obj-$(CONFIG_PRISM54)		+= prism54/
 
+EXTRA_CFLAGS := -DSDTEST=1 -DDHD_DEBUG=1
+
 # Jagan+
 ifdef CONFIG_HW_AUSTIN
 obj-$(CONFIG_BCM4325)           += bcm4325/
-obj-$(CONFIG_BCM4325)           += bcm4325/em/
+#obj-$(CONFIG_BCM4325)           += bcm4325/em/
 endif
 ifdef CONFIG_HW_TOUCAN
 obj-$(CONFIG_BCM4329)           += bcm4329/
-obj-$(CONFIG_BCM4329)           += bcm4329/em/
+#obj-$(CONFIG_BCM4329)           += bcm4329/em/
 endif
 # Jagan-
 

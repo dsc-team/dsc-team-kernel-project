@@ -27,11 +27,9 @@
 #ifndef	_bcmdefs_h_
 #define	_bcmdefs_h_
 
-
-
-
-
-
+//n0p
+//#define DHD_DEBUG 0x80F
+//#define DHD_DEBUG 0
 
 #define bcmreclaimed 		0
 #define _data	_data
