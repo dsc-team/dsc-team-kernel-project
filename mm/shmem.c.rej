@@ -1,0 +1,14 @@
+--- mm/shmem.c	2010-09-29 04:09:08.000000000 +0300
++++ mm/shmem.c	2011-10-06 06:08:48.000000000 +0300
+@@ -2759,10 +2767,6 @@
+ 	file = shmem_file_setup("dev/zero", size, vma->vm_flags);
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
+-
+-	if (vma->vm_file)
+-		fput(vma->vm_file);
+-	vma->vm_file = file;
+-	vma->vm_ops = &shmem_vm_ops;
++	shmem_set_file(vma, file);
+ 	return 0;
+ }

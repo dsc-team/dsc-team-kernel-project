@@ -735,6 +735,7 @@ void mdp_ppp_dump_debug(const struct mdp_info *mdp);
 #define DMA_AHBM_LCD_SEL_SECONDARY (1<<15)
 #define DMA_IBUF_C3ALPHA_EN (1<<16)
 #define DMA_DITHER_EN (1<<17)
+
 #define DMA_MDDI_DMAOUT_LCD_SEL_PRIMARY 0
 #define DMA_MDDI_DMAOUT_LCD_SEL_SECONDARY (1<<18)
 #define DMA_MDDI_DMAOUT_LCD_SEL_EXTERNAL (1<<19)

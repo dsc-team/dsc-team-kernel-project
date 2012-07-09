@@ -48,6 +48,9 @@ static struct miscdevice cover_dev = {
 
 static void cover_work_func(struct work_struct *work)
 {
+	
+//n0p
+#if 0
 	int cover_status;
 
     msleep(DELAY_TIME_MSEC);        
@@ -65,6 +68,7 @@ static void cover_work_func(struct work_struct *work)
         #endif
 	    kernel_power_off("Cover Removed");
 	}
+#endif
 }
 
 static irqreturn_t cover_irq_handler(int irq, void *dev_id)

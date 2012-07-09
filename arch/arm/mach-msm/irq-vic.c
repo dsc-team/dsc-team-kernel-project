@@ -237,7 +237,6 @@ static inline void msm_irq_write_all_regs(void __iomem *base, unsigned int val)
 static void msm_irq_ack(unsigned int irq)
 {
 	void __iomem *reg = VIC_INT_TO_REG_ADDR(VIC_INT_CLEAR0, irq);
-
 	irq = 1 << (irq & 31);
 	writel(irq, reg);
 }

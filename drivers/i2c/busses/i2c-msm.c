@@ -406,6 +406,7 @@ msm_i2c_interrupt(int irq, void *devid)
     if((status & I2C_STATUS_PACKET_NACKED) && !(status & (I2C_STATUS_BUS_ERROR|I2C_STATUS_ARB_LOST)) )
     {
       MSG2("IRQ:  %02X %c%d NAK (%04X)", (dev->msg->addr<<1),((dev->msg->flags&I2C_M_RD)?'R':'W'),dev->msg->len,status);
+      udelay(100);
       LOG_PUSH(I2C_LOG_ERR_10 |
         ((dev->msg->flags&I2C_M_RD)?I2C_LOG_MSG_RD:I2C_LOG_MSG_WR));
     }

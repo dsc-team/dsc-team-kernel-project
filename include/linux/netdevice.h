@@ -219,7 +219,6 @@ struct neighbour;
 struct neigh_parms;
 struct sk_buff;
 
-
 struct netdev_hw_addr {
 	struct list_head	list;
 	unsigned char		addr[MAX_ADDR_LEN];
@@ -2370,6 +2369,10 @@ do {								\
 	0;							\
 })
 #endif
+
+#define MODULE_ALIAS_NETDEV(device) \
+	MODULE_ALIAS("netdev-" device)
+
 
 #endif /* __KERNEL__ */
 
