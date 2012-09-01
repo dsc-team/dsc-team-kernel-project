@@ -208,7 +208,12 @@ static int32_t cap_i2c_write(struct i2c_client *kbd, struct capsensor_reg_t *reg
 
         if ( i2c_transfer( kbd->adapter, msg, 1) < 0 ) {
             printk("cap_i2c_write: write %Xh=0x%X failed\n", regs->addr, regs->data );
+//n0p
+		udelay(200);
+		if ( i2c_transfer( kbd->adapter, msg, 1) < 0 ) {
+			printk("NAK cap_i2c_write retry: write %Xh=0x%X failed\n", regs->addr, regs->data );
             return -EIO;
+        }
         }
 
     return 1;
@@ -246,7 +251,13 @@ static int32_t cap_i2c_read(struct i2c_client *kbd, struct capsensor_reg_t *regs
     if( ret != ARRAY_SIZE(msgs) )
     {
         printk(KERN_ERR "cap_i2c_read: read %d bytes return failure,buf=0x%xh , size=%d\n", ret, (unsigned int)buf, (unsigned int)size );
+//n0p
+		udelay(200);
+                ret = i2c_transfer(kbd->adapter, msgs, 2);
+		    if( ret != ARRAY_SIZE(msgs) ) {
+			  printk(KERN_ERR "NAK cap_i2c_read retry: read %d bytes return failure,buf=0x%xh , size=%d\n", ret, (unsigned int)buf, (unsigned int)size );
         return ret;
+    }
     }
 
     regs->data = (dataBuf[0]<<8) | (dataBuf[1]);
@@ -269,8 +280,14 @@ static void capsensor_early_suspend(struct early_suspend *h)
     {
       temp_write.addr = 0x1;
       temp_write.data = 0x00F0;
-      if(!cap_i2c_write(kbd, &temp_write, 1))
+      if(!cap_i2c_write(kbd, &temp_write, 1)) {
         printk(KERN_ERR "write  failed. temp_write.data=0x%x\n",temp_write.data);
+//n0p
+        udelay(200);
+	if(!cap_i2c_write(kbd, &temp_write, 1)) printk(KERN_ERR "Retry write  failed. temp_write.data=0x%x\n",temp_write.data);
+		else 
+	PM_LOG_EVENT(PM_LOG_OFF, PM_LOG_SENSOR_CAP);
+	}
       else
         PM_LOG_EVENT(PM_LOG_OFF, PM_LOG_SENSOR_CAP);
     }

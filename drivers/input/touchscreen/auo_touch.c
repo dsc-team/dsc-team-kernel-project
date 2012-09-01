@@ -39,13 +39,13 @@
 #include <mach/../../proc_comm.h>
 #include <mach/smem_pc_oem_cmd.h>
 
-#define SPEED_DISABLETOUCH_WHEN_PSENSORACTIVE 1
+#define SPEED_DISABLETOUCH_WHEN_PSENSORACTIVE 0
 
 #if SPEED_DISABLETOUCH_WHEN_PSENSORACTIVE
 extern atomic_t psensor_approached;
 #endif
 
-#define GETTOUCHLOG_AFTER_SCREENOFF 1
+#define GETTOUCHLOG_AFTER_SCREENOFF 0
 #if GETTOUCHLOG_AFTER_SCREENOFF
 atomic_t GetTouchLog1AfterLaterResume = ATOMIC_INIT(0);
 atomic_t GetTouchLog2AfterLaterResume = ATOMIC_INIT(0);
@@ -53,8 +53,8 @@ atomic_t GetTouchLog2AfterLaterResume = ATOMIC_INIT(0);
 
 
 #define TS_DRIVER_NAME "auo_touchscreen"
-#define TCH_DBG(fmt, args...) printk(KERN_INFO "AUO_TOUCH: " fmt, ##args)
-
+//#define TCH_DBG(fmt, args...) printk(KERN_INFO "AUO_TOUCH: " fmt, ##args)
+#define TCH_DBG(fmt, args...) 
 
 static uint printCoord = 0;
 module_param(printCoord, uint, 0644);
@@ -352,7 +352,14 @@ static void ts_irqWorkHandler( struct work_struct *work )
 #if defined(TOUCH_FB_PORTRAIT)
                 point[i].x = rawCoord[4*i+1]<<8 | rawCoord[4*i];
                 point[i].y = rawCoord[4*i+3]<<8 | rawCoord[4*i+2];
-
+//hPa
+//cm7 streak
+                if( 0 != point[i].x ){
+                    point[i].x = AUO_X_MAX + 1 - point[i].x;
+               }
+                if( 0 != point[i].y ){
+                    point[i].y = AUO_Y_MAX + 1 - point[i].y;
+               }
 #else
                 point[i].y = rawCoord[4*i+1]<<8 | rawCoord[4*i];
                 point[i].x = rawCoord[4*i+3]<<8 | rawCoord[4*i+2];
@@ -1193,9 +1200,14 @@ static long ts_misc_ioctl ( struct file *fp,
                 goto exit_ioctl;
             }
 
-            if( power.on )
+            if( power.on ) {
+                printk("DSC Voodoo: TS resume");
                 rc = ts_resume_ic(g_ts, client);
-            else
+		usleep(100);
+                rc = ts_suspend_ic(g_ts, client);
+		usleep(100);
+                rc = ts_resume_ic(g_ts, client);
+            } else
                 rc = ts_suspend_ic(g_ts, client);
 
             break;
@@ -1446,6 +1458,9 @@ static int ts_resume_ic(struct ts_t *ts, struct i2c_client *client)
     if( 0 == g_touch_suspended )
         goto exit_resume;
 
+    printk("DSC: TS resume");
+//    ts_reset_panel(ts);
+
     if(system_rev >= EVT2P2_Band125)
     {
 	    if( g_pixcir_freeze )
@@ -1461,8 +1476,21 @@ static int ts_resume_ic(struct ts_t *ts, struct i2c_client *client)
 		    data |= (ACTIVE_POWER_MODE - ACTIVE_POWER_MODE);
             TCH_DBG("ts_resume_ic: leave deep sleep mode, write %xh=%x\n", addr, data);
 		    rc = ts_write_i2c( client, addr, &data, 1);
+
+		    usleep(100);
+		    printk("DSC Voodoo - 1 - sleep");
+		    data &= (~AUO_POWER_MODE_MASK);
+                    data |= (DEEP_SLEEP_POWER_MODE - ACTIVE_POWER_MODE);
+
+		    usleep(100);
+                    printk("DSC Voodoo - 2 - resume");
+		    data &= (~AUO_POWER_MODE_MASK);
+                    data |= (ACTIVE_POWER_MODE - ACTIVE_POWER_MODE);
+                    rc = ts_write_i2c( client, addr, &data, 1);
+
 		    if( rc ) goto exit_resume;
 		}
+
         rc = ts_config_panel(ts);
         if( rc ) goto exit_resume;
     }
@@ -1590,7 +1618,7 @@ static ssize_t auo_touch_dump_property(struct device *dev, struct device_attribu
 		{
 	        down(&ts_sem);
 	        strLen += sprintf(buf+strLen, "GLOBAL VARS:\n");
-	        strLen += sprintf(buf+strLen, "psensor approached=%d\n", atomic_read(&psensor_approached));
+	        //strLen += sprintf(buf+strLen, "psensor approached=%d\n", atomic_read(&psensor_approached));
 	        strLen += sprintf(buf+strLen, "touch indicate int=%d\n", g_touch_ind_mode);
 	        strLen += sprintf(buf+strLen, "pixcir detected=%d\n", g_pixcir_detected);
 	        strLen += sprintf(buf+strLen, "pixcir freeze=%d\n", g_pixcir_freeze);

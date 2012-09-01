@@ -355,6 +355,7 @@ kgsl_g12_init_pwrctrl(struct kgsl_device *device)
 		clk = NULL;
 	else
 		clk_set_rate(clk, device->pwrctrl.clk_freq[KGSL_AXI_HIGH]*1000);
+		printk("KGSL: %d",device->pwrctrl.clk_freq[KGSL_AXI_HIGH]*1000);
 	device->pwrctrl.ebi1_clk = clk;
 
 	if (bus_table) {

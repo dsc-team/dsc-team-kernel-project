@@ -253,7 +253,9 @@ fail:
 EXPORT_SYMBOL(msm_proc_comm);
 static int __init msm_proc_comm_late_init(void)
 {
+#if defined (CONFIG_QSD_OEM_RPC_VERSION_CHECK)
 	version_check = 1;
+#endif
 	return 0;
 }
 late_initcall(msm_proc_comm_late_init);

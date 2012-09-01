@@ -625,12 +625,14 @@ static void dpm_drv_timeout(unsigned long data)
         char* dump_ptr = debug_buffer;
 
         rpc_zdelay_work_func(NULL);
+#if 0
         debug_dump_sym(debug_buffer, EVENTS_PRINT_SIZE, 0);
         for (dump_loop = 0; dump_loop < (EVENTS_PRINT_SIZE / PRINTK_BUFF_SIZE); dump_loop++)
         {
             printk("%s", dump_ptr);
             dump_ptr += PRINTK_BUFF_SIZE;
         }
+#endif
     }
 #if 0
     smd_restart_modem(NULL);

@@ -90,14 +90,17 @@ int  host_oob_irq = 0;
 }
 #endif /* defined(OOB_INTR_ONLY) */
 
+#ifndef CONFIG_DSC_WIFI_LOCK
 extern struct mutex wl_gpio_lock;
+#endif
 
 /* Customer function to control hw specific wlan gpios */
 void
 dhd_customer_gpio_wlan_ctrl(int onoff)
 {
+#ifndef CONFIG_DSC_WIFI_LOCK
 	mutex_lock(&wl_gpio_lock);
-
+#endif
 	switch (onoff) {
 		case WLAN_RESET_OFF:
 			WL_TRACE(("%s: call customer specific GPIO to insert WLAN RESET\n",
@@ -248,5 +251,7 @@ dhd_customer_gpio_wlan_ctrl(int onoff)
 			OSL_DELAY(500);
 		break;
 	}
+#ifndef CONFIG_DSC_WIFI_LOCK
 	mutex_unlock(&wl_gpio_lock);
+#endif
 }

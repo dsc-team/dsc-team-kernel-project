@@ -36,8 +36,8 @@
 //DSC_CPUCONTROL
 //0 - default Quallcom CPU table
 //1 - overclocked table, default to Phoenix kernel
-//2 - highpower CPU clocktable
-#define DSC_CPUCONTROL 1
+//2 - test CPU clocktable
+#define DSC_CPUCONTROL 2
 #define SHOT_SWITCH 4
 #define HOP_SWITCH 5
 #define SIMPLE_SLEW 6
@@ -62,6 +62,13 @@ enum {
 	ACPU_PLL_3,
 	ACPU_PLL_END,
 };
+
+static int  uv = 0;
+static int cvdd = 0;
+
+module_param(uv, int, 0644);
+module_param(cvdd, int, 0644);
+
 struct clkctl_acpu_speed {
 	unsigned int     use_for_scaling;
 	unsigned int     acpuclk_khz;
@@ -74,44 +81,68 @@ struct clkctl_acpu_speed {
 	unsigned int     sc_core_src_sel_mask;
 	unsigned int     sc_l_value;
 	int              vdd;
+	int		 vdd_uv;
 	unsigned long    lpj; /* loops_per_jiffy */
+};
+
+struct clkctl_acpu_speed acpu_freq_tbl_phoenix[] = {
+        { 0, 19200, -1, 0, 0, 0, 0, 14000, 0, 0, 1000,1000},
+        { 1, 128000, 1, 1, 5, 0, 0, 14000, 2, 0, 1000,950},
+        //{ 1, 128000, 0, 4, 0, 0, 0, 29000, 0, 0, 1000,950},
+        { 1, 245760, 0, 4, 0, 0, 0, 29000, 0, 0, 1000,975},
+        { 1, 384000, 3, 0, 0, 0, 0, 58000, 1, 0xA, 1000,1000},
+        { 1, 576000, 3, 0, 0, 0, 0, 117000, 1, 0xF, 1050,1000},
+        { 1, 768000, 3, 0, 0, 0, 0, 128000, 1, 0x14, 1150,1125},
+        { 1, 998400, 3, 0, 0, 0, 0, 128000, 1, 0x18, 1300,1200},
+        { 1, 1075200, 3, 0, 0, 0, 0, 128000, 1, 0x19, 1300,1225},
+        { 1, 1152000, 3, 0, 0, 0, 0, 128000, 1, 0x1A, 1400,1250},
+        { 1, 1190400, 3, 0, 0, 0, 0, 128000, 1, 0x1B, 1425,1325},
+        { 1, 1228800, 3, 0, 0, 0, 0, 128000, 1, 0x1C, 1475,1375},
+        { 1, 1267200, 3, 0, 0, 0, 0, 128000, 1, 0x1D, 1525,1475},
+        { 1, 1344000, 3, 0, 0, 0, 0, 128000, 1, 0x1E, 1550,1525},
+	{ 0,0,0,0,0,0,0,0,0,0,0 },
+        { 0,0,0,0,0,0,0,0,0,0,0 },
 };
 
 struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
 #if (DSC_CPUCONTROL==2)
-//overpowered table
+//test table
 	{ 0,19200,-1,0,0,0,0,14000,0,0,1000,0},
 	{ 0,128000,1,1,5,0,0,14000,2,0,1000,0,},
-	{ 1,128000,0,4,0,0,0,29000,0,0,1000,0},
-	{ 1,245760,0,4,0,0,0,29000,0,0,1050,0},
-	{ 1,384000,3,0,0,0,0,58000,1,10,1075,0},
-	{ 1,576000,3,0,0,0,0,117000,1,15,1100,0},
-	{ 1,768000,3,0,0,0,0,128000,1,20,1200,0},
-	{ 1,998400,3,0,0,0,0,128000,1,26,1350,0},
-	{ 1,1075200,3,0,0,0,0,128000,1,26,1400,0},
-	{ 1,1152000,3,0,0,0,0,160000,1,27,1425,0},
-	{ 1,1190400,3,0,0,0,0,160000,1,28,1450,0},
-	{ 1,1228800,3,0,0,0,0,160000,1,29,1500,0},
-	{ 1,1267200,3,0,0,0,0,160000,1,30,1550,0},
+        { 1,128000,0,4,0,0,0,29000,0,0,950,0},
+        { 1,245760,0,4,0,0,0,29000,0,0,975,0},
+        { 1,384000,3,0,0,0,0,58000,1,10,1000,0},
+        { 1,576000,3,0,0,0,0,117000,1,15,1000,0},
+        { 1,768000,3,0,0,0,0,128000,1,20,1125,0},
+        { 1,998400,3,0,0,0,0,128000,1,24,1200,0},
+        { 1,1075200,3,0,0,0,0,128000,1,25,1225,0},
+        { 1,1152000,3,0,0,0,0,128000,1,26,1250,0},
+        { 1,1190400,3,0,0,0,0,128000,1,27,1325,0},
+        { 1,1228800,3,0,0,0,0,128000,1,28,1375,0},
+        { 1,1267200,3,0,0,0,0,128000,1,29,1475,0},
+        { 1,1344000,3,0,0,0,0,128000,1,30,1525,0},
+
+//      { 1,1420800,3,0,0,0,0,128000,1,31,1500,0},
+//      { 1,1497600,3,0,0,0,0,192000,1,31,1600,0},
 	{ 0,0,0,0,0,0,0,0,0,0,0 },
+        { 0,0,0,0,0,0,0,0,0,0,0 },
+
 #elif (DSC_CPUCONTROL==1)
 //default Phoenix table
 	{ 0,19200,-1,0,0,0,0,14000,0,0,1000,0},
-	{ 0,128000,1,1,5,0,0,14000,2,0,1000,0,},
+{ 0,128000,1,1,5,0,0,14000,2,0,1000,0 },
 	{ 1,128000,0,4,0,0,0,29000,0,0,950,0},
 	{ 1,245760,0,4,0,0,0,29000,0,0,1000,0},
 	{ 1,384000,3,0,0,0,0,58000,1,10,1000,0},
 	{ 1,576000,3,0,0,0,0,117000,1,15,1000,0},
 	{ 1,768000,3,0,0,0,0,128000,1,20,1125,0},
-	{ 1,998400,3,0,0,0,0,128000,1,26,1250,0},
+{ 1,998400,3,0,0,0,0,128000,1,25,1250,0 },
 	{ 1,1075200,3,0,0,0,0,128000,1,26,1250,0},
 	{ 1,1152000,3,0,0,0,0,160000,1,27,1400,0},
 	{ 1,1190400,3,0,0,0,0,160000,1,28,1425,0},
 	{ 1,1228800,3,0,0,0,0,160000,1,29,1475,0},
 	{ 1,1267200,3,0,0,0,0,160000,1,30,1525,0},
-        { 1,1344000,3,0,0,0,0,160000,1,30,1550,0},
-        { 1,1420800,3,0,0,0,0,160000,1,30,1575,0},
-//	{ 1,1497600,3,0,0,0,0,192000,1,31,1600,0},
+{ 0,0,0,0,0,0,0,0,0,0,0,0 },
 	{ 0,0,0,0,0,0,0,0,0,0,0 },
 #else
 	{ 0, 19200, ACPU_PLL_TCXO, 0, 0, 0, 0, 14000, 0, 0, 1000},
@@ -135,8 +166,31 @@ struct clkctl_acpu_speed acpu_freq_tbl_998[] = {
 	{ 1, 998400, ACPU_PLL_3, 0, 0, 0, 0, 128000, 1, 0x18, 1300},
 	{ 1, 1075200, ACPU_PLL_3, 0, 0, 0, 0, 128000, 1, 0x19, 1300},
 	{ 1, 1152000, ACPU_PLL_3, 0, 0, 0, 0, 128000, 1, 0x1A, 1400},
+	{ 1,1190400,3,0,0,0,0,160000,1,0x1B,1425},
+	{ 1,1228800,3,0,0,0,0,160000,1,0x1C,1475},
+	{ 1,1267200,3,0,0,0,0,160000,1,0x1D,1525},
+	{ 1,1344000,3,0,0,0,0,160000,1,0x1E,1550},
+
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 #endif
+
+//Reference table
+#if 0
+        { 0,19200,-1,0,0,0,0,14000,0,0,1000,0},
+        { 0,128000,1,1,5,0,0,14000,2,0,1000,0,},
+        { 1,128000,0,4,0,0,0,29000,0,0,950,0},
+        { 1,245760,0,4,0,0,0,29000,0,0,975,0},
+        { 1,384000,3,0,0,0,0,58000,1,10,1000,0},
+        { 1,576000,3,0,0,0,0,117000,1,15,1000,0},
+        { 1,768000,3,0,0,0,0,128000,1,20,1125,0},
+        { 1,998400,3,0,0,0,0,128000,1,25,1225,0},
+        { 1,1075200,3,0,0,0,0,128000,1,26,1250,0},
+        { 1,1152000,3,0,0,0,0,128000,1,27,1300,0},
+        { 1,1190400,3,0,0,0,0,128000,1,28,1325,0},
+        { 1,1228800,3,0,0,0,0,128000,1,29,1350,0},
+        { 1,1267200,3,0,0,0,0,128000,1,30,1400,0},
+#endif
+
 };
 
 struct clkctl_acpu_speed acpu_freq_tbl_768[] = {
@@ -158,7 +212,8 @@ struct clkctl_acpu_speed acpu_freq_tbl_768[] = {
 	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
-static struct clkctl_acpu_speed *acpu_freq_tbl = acpu_freq_tbl_998;
+static struct clkctl_acpu_speed *acpu_freq_tbl = acpu_freq_tbl_phoenix;
+
 #define AXI_S	(&acpu_freq_tbl[1])
 #define PLL0_S	(&acpu_freq_tbl[2])
 
@@ -438,6 +493,7 @@ static int acpuclk_set_vdd_level(int vdd)
 {
 	if (drv_state.acpu_set_vdd) {
 		dprintk("Switching VDD to %d mV\n", vdd);
+		cvdd=vdd;
 		return drv_state.acpu_set_vdd(vdd);
 	} else {
 		/* Assume that the PMIC supports scaling the processor
@@ -482,6 +538,18 @@ int acpuclk_set_rate(int cpu, unsigned long rate, enum setrate_reason reason)
 		}
 #endif
 		/* Increase VDD if needed. */
+
+//n0p
+if (uv) {
+		if (tgt_s->vdd_uv > strt_s->vdd_uv) {
+			rc = acpuclk_set_vdd_level(tgt_s->vdd_uv);
+			if (rc) {
+				pr_err("Unable to increase ACPU vdd (%d), UV\n",
+					rc);
+				goto out;
+			}
+		} 
+         } else {
 		if (tgt_s->vdd > strt_s->vdd) {
 			rc = acpuclk_set_vdd_level(tgt_s->vdd);
 			if (rc) {
@@ -490,6 +558,9 @@ int acpuclk_set_rate(int cpu, unsigned long rate, enum setrate_reason reason)
 				goto out;
 			}
 		}
+         }
+
+
 	} else if (reason == SETRATE_PC
 		&& rate != POWER_COLLAPSE_KHZ) {
 		/* Returning from PC. ACPU is running on AXI source.
@@ -541,13 +612,21 @@ int acpuclk_set_rate(int cpu, unsigned long rate, enum setrate_reason reason)
 	if (res)
 		pr_warning("Unable to drop ACPU vdd (%d)\n", res);
 #endif
-
+//n0p
 	/* Drop VDD level if we can. */
+if (uv) {
+ 	if (tgt_s->vdd_uv < strt_s->vdd_uv) {
+		res = acpuclk_set_vdd_level(tgt_s->vdd_uv);
+		if (res)
+			pr_warning("Unable to drop ACPU vdd (%d), UV\n", res);
+	}
+        } else {
 	if (tgt_s->vdd < strt_s->vdd) {
 		res = acpuclk_set_vdd_level(tgt_s->vdd);
 		if (res)
 			pr_warning("Unable to drop ACPU vdd (%d)\n", res);
 	}
+      }
 
 	dprintk("ACPU speed change complete\n");
 out:
@@ -676,7 +755,7 @@ static void __init acpu_freq_tbl_fixup(void)
 	case 0x30:
 	case 0x00:
 #if (DSC_CPUCONTROL)
-		max_acpu_khz = 2000000;
+		max_acpu_khz = 3000000;
 #else
 		max_acpu_khz = 1152000;
 #endif

@@ -63,7 +63,7 @@
 #error DHD_SDALIGN is not a power of 2!
 #endif
 
-#define RETRIES 2		/* # of retries to retrieve matching ioctl response */
+#define RETRIES 8		/* # of retries to retrieve matching ioctl response */
 #define BUS_HEADER_LEN	(16+DHD_SDALIGN)	/* Must be atleast SDPCM_RESERVE
 				 * defined in dhd_sdio.c (amount of header tha might be added)
 				 * plus any space that might be needed for alignment padding.
@@ -509,6 +509,9 @@ dhd_prot_dstats(dhd_pub_t *dhd)
 	return;
 }
 
+//#define CONFIG_KT 1
+
+#undef CONFIG_KT
 
 int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
@@ -732,6 +735,9 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #elif defined(CONFIG_KT)
         strcpy(dhd->country_code,"EU");
 #endif
+
+//n0p
+strcpy(dhd->country_code,"JP");
 
 	/* Set Country code */
 	if (dhd->country_code[0] != 0) {

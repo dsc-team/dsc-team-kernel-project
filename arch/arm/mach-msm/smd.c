@@ -929,13 +929,14 @@ static void smd_crash_show_errmsg(struct work_struct *work)
     {
         int dump_loop;
         char* dump_ptr = debug_buffer;
-
+#if 0
         debug_dump_sym(debug_buffer, EVENTS_PRINT_SIZE, 0);
         for (dump_loop = 0; dump_loop < (EVENTS_PRINT_SIZE / PRINTK_BUFF_SIZE); dump_loop++)
         {
             printk("%s", dump_ptr);
             dump_ptr += PRINTK_BUFF_SIZE;
         }
+#endif
     }
 
     while(1)

@@ -43,8 +43,9 @@
 #include <linux/ethtool.h>
 #include <linux/fcntl.h>
 #include <linux/fs.h>
+#ifndef CONFIG_DSC_WIFI_LOCK
 #include <linux/mutex.h>
-
+#endif
 #include <asm/uaccess.h>
 #include <asm/unaligned.h>
 
@@ -58,6 +59,14 @@
 #include <dhd_bus.h>
 #include <dhd_proto.h>
 #include <dhd_dbg.h>
+
+#ifdef CONFIG_DSC_WIFI_LOCK
+//hPa
+//cm7 streak
+#ifdef CONFIG_HAS_WAKELOCK
+#include <linux/wakelock.h>
+#endif
+#endif
 
 #undef CONFIG_PM_SLEEP
 
@@ -1056,6 +1065,7 @@ dhd_watchdog_thread(void *data)
 #ifdef DHD_SCHED
 	if (dhd_watchdog_prio > 0)
 	{
+//n0p
 #if 0
 		struct sched_param param;
 		param.sched_priority = (dhd_watchdog_prio < MAX_RT_PRIO)?
@@ -1138,6 +1148,7 @@ dhd_dpc_thread(void *data)
 #ifdef DHD_SCHED
 	if (dhd_dpc_prio > 0)
 	{
+//n0p
 #if 0
 		struct sched_param param;
 		param.sched_priority = (dhd_dpc_prio < MAX_RT_PRIO)?dhd_dpc_prio:(MAX_RT_PRIO-1);
@@ -2112,7 +2123,13 @@ static int q_proc_call(char *buf, char **start, off_t off,
     return len;
 }
 
+#ifndef CONFIG_DSC_WIFI_LOCK
 struct mutex 	wl_gpio_lock;
+#else
+#ifdef CONFIG_HAS_WAKELOCK
+static struct wake_lock wlock;
+#endif
+#endif
 
 static int __init
 dhd_module_init(void)
@@ -2219,7 +2236,10 @@ dhd_module_init(void)
 	sema_init(&dhd_registration_sem, 0);
 #endif
 
+#ifndef CONFIG_DSC_WIFI_LOCK
 	mutex_init(&wl_gpio_lock);
+#endif
+
 	error = dhd_bus_register();
 
 	if (!error)
@@ -2237,10 +2257,20 @@ dhd_module_init(void)
 	 * It's needed to make sync up exit from dhd insmod  and
 	 * Kernel MMC sdio device callback registration
 	 */
-	if (down_timeout(&dhd_registration_sem,  msecs_to_jiffies(3000)) != 0)
+	if (down_timeout(&dhd_registration_sem,  msecs_to_jiffies(3000)) != 0) {
 		DHD_ERROR(("%s: sdio_register_driver failed \n", __FUNCTION__));
+#ifdef CONFIG_DSC_WIFI_LOCK
+		#ifdef CONFIG_HAS_WAKELOCK
+                wake_unlock(&wlock);
+                wake_lock_destroy(&wlock);
+		#endif
 #endif
-
+        }
+#endif
+#ifdef CONFIG_DSC_WIFI_LOCK
+	if (error)
+		BUG();
+#endif
 	return error;
 }
 
@@ -2295,8 +2325,15 @@ dhd_module_cleanup(void)
 	 mmc_detect_change(sdcc2_mmcptr, 0);
      remove_proc_entry("q_wlan", NULL);
 #endif
-
+#ifndef CONFIG_DSC_WIFI_LOCK
 	mutex_destroy(&wl_gpio_lock);
+#else
+#ifdef CONFIG_HAS_WAKELOCK
+       if( wake_lock_active(&wlock) )
+               wake_unlock(&wlock);
+       wake_lock_destroy(&wlock);
+#endif
+#endif
 }
 
 
@@ -2607,6 +2644,14 @@ dhd_dev_reset(struct net_device *dev, uint8 flag)
 
 	DHD_ERROR(("%s:  WLAN OFF DONE\n", __FUNCTION__));
 
+#ifdef CONFIG_DSC_WIFI_LOCK
+#ifdef CONFIG_HAS_WAKELOCK
+       if( flag && wake_lock_active(&wlock) )
+               wake_unlock(&wlock);
+       else if (!flag && !wake_lock_active(&wlock) )
+               wake_lock(&wlock);
+#endif
+#endif
 	return 1;
 }
 

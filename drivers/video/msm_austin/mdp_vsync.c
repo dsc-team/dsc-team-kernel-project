@@ -158,6 +158,7 @@ irqreturn_t mdp_hw_vsync_handler_proxy(int irq, void *data)
 	 * disable_irq(MDP_HW_VSYNC_IRQ);
 	 */
 
+	//n0p
 	if(mddi_in_processing > 0)
 		printk(" [m:] ");
 	mdp_vsync_handler(data);

@@ -5358,13 +5358,13 @@ wl_iw_get_set_country(
 			MIN(country_code_size, sizeof(country_code)));
 
 		if(strncmp(country_code,"11",2)==0)
-                     strncpy(country_code,"US",sizeof("US"));
+                     strncpy(country_code,"JP",sizeof("US"));
 		else if(strncmp(country_code,"13",2)==0)
-                     strncpy(country_code,"EU",sizeof("EU"));
+                     strncpy(country_code,"JP",sizeof("EU"));
 		else if(strncmp(country_code,"14",2)==0)
                      strncpy(country_code,"JP",sizeof("JP"));
                 else
-                     strncpy(country_code,"US",sizeof("US"));
+                     strncpy(country_code,"JP",sizeof("US"));
 
 		if ((error = dev_wlc_ioctl(dev, WLC_SET_COUNTRY,
 			&country_code, sizeof(country_code))) >= 0) 
