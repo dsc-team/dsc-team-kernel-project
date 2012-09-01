@@ -1,0 +1,113 @@
+DSC Team kernel project
+
+
+How to prepare your own streak kernel.
+
+1. You will need some tools:
+ - download Android SDK http://developer.android.com/sdk/index.html
+ - download Android NDK http://developer.android.com/sdk/ndk/index.html
+ - download mkboot.tar.gz from here http://codex.xiaoka.com/wiki/streak:kernel_porting#flashing
+ - download extract-ramdisk.pl from here http://code.google.com/p/zen-droid/downloads/detail?name=extract-ramdisk.pl
+
+
+uncompress both archives in some directory for example in linux:
+
+mkdir /usr/src/dell
+cd  /usr/src/dell
+wget http://dl.google.com/android/android-sdk_r15-linux.tgz
+wget http://dl.google.com/android/ndk/android-ndk-r7-linux-x86.tar.bz2
+
+extract both archives in /usr/src/dell/
+
+2. You will need kernel sources
+ - download with git:
+    git clone git@github.com:dsc-team/dsc-team-kernel-project.git
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+kernel source will be in /usr/src/dell/dsc-team-kernel-project
+
+now, tune your system for cross-compilation: (tune to your path of course)
+
+export PATH=/usr/src/dell/android-ndk-r7/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/:$PATH
+cd /usr/src/dell/dsc-team-kernel-project
+
+
+3. Configure the kernel:
+
+
+ARCH=arm CROSS_COMPILE=arm-linux-androideabi- make menuconfig
+
+or you can tweak file .config (if you know what are you doing)
+when ready compile kernel:
+
+ARCH=arm CROSS_COMPILE=arm-linux-androideabi- make
+
+now go to drink some coffe, tea or beer ;)
+when you come back (10-20 minutes) you will see:
+
+...........
+ Kernel: arch/arm/boot/zImage is ready
+...........
+
+and below:
+............
+ drivers/net/wireless/bcm4325/dhd.ko
+............
+
+OK, that was long part, now tricky one - making boot.img
+
+extract downloaded file mkboot.tar.gz in some directory 
+put in the same directory downloaded extract-ramdisk.pl
+this will be your working directory.
+ 
+now, get boot.img from your favourite rom, and place in working directory.
+Tricky part:
+
+./extract-ramdisk.pl boot.img
+cp /usr/src/dell/dsc-team-kernel-project/arch/arm/boot/zImage . (this will copy here your compiled zImage)
+./mkbootimg --kernel zImage --ramdisk boot.img-ramdisk.cpio.gz --cmdline "androidboot.hardware=streak" --base 0x20000000 -o boot-my.img
+
+that's it.
+now you have a file "boot-my.img" - your new kernel
+transfer it via fastboot to device:
+./fastboot -i 0x413c flash boot boot-my.img
+
+if something goes wrong - transfer back your original kernel:
+./fastboot -i 0x413c flash boot boot.img
+
+
+>>>>>>> Phoenix
+
+Update: 
+@Team:
+
+Just created new branch "experimental14" in our github
+this is same kernel as our stable, just patched to version 2.6.35.14
+
+how I did it:
+1. downloaded clean source of 2.6.35.7
+2. downloaded clean source of 2.6.35.14
+3. diff 2.6.35.7 vs our kernel (this generate dell additions to kernel as a patch
+4. diff 2.6.35.7 vs 2.6.35.14 (this generate version upgrade patch )
+5. patched those 2 patches over clean 2.6.35.7 (there was some rejects, i added them manually)
+
+now there are 2 branches in our github:
+- master (our stable based on dell open-source 405)
+- experimental14 - cloned with above steps from master
+
+you can clone locally in some empty dir with command:
+
+git clone git@github.com:dsc-team/dsc-team-kernel-project.git -b experimental14
+
+
+
+
+<<<<<<< HEAD
+LTrifonov
+=======
+>>>>>>> Phoenix
+=======
+LTrifonov
+>>>>>>> Phoenix
