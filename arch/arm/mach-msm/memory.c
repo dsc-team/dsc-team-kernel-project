@@ -1,7 +1,6 @@
 /* arch/arm/mach-msm/memory.c
  *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -18,16 +17,12 @@
 #include <linux/mm_types.h>
 #include <linux/bootmem.h>
 #include <linux/module.h>
+#include <linux/memory_alloc.h>
 #include <asm/pgtable.h>
 #include <asm/io.h>
 #include <asm/mach/map.h>
 #include <asm/cacheflush.h>
-#include <linux/hardirq.h>
-#if defined(CONFIG_MSM_NPA_REMOTE)
-#include "npa_remote.h"
-#include <linux/completion.h>
-#include <linux/err.h>
-#endif
+#include <mach/msm_memtypes.h>
 
 int arch_io_remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 			    unsigned long pfn, unsigned long size, pgprot_t prot)
@@ -40,61 +35,30 @@ int arch_io_remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 	return remap_pfn_range(vma, addr, pfn, size, prot);
 }
 
-void *strongly_ordered_page;
+void *zero_page_strongly_ordered;
 
-/*
- * The trick of making the zero page strongly ordered no longer
- * works. We no longer want to make a second alias to the zero
- * page that is strongly ordered. Manually changing the bits
- * in the page table for the zero page would have side effects
- * elsewhere that aren't necessary. The result is that we need
- * to get a page from else where. Given when the first call
- * to write_to_strongly_ordered_memory occurs, using bootmem
- * to get a page makes the most sense.
- */
-void map_page_strongly_ordered(void)
+static void map_zero_page_strongly_ordered(void)
 {
-#if defined(CONFIG_ARCH_MSM7X27)
-	long unsigned int phys;
-
-	if (strongly_ordered_page)
+	if (zero_page_strongly_ordered)
 		return;
 
-	strongly_ordered_page = alloc_bootmem(PAGE_SIZE);
-	phys = __pa(strongly_ordered_page);
-	ioremap_page((long unsigned int) strongly_ordered_page,
-		phys,
-		get_mem_type(MT_DEVICE_STRONGLY_ORDERED));
-	printk(KERN_ALERT "Initialized strongly ordered page successfully\n");
-#endif
+	zero_page_strongly_ordered =
+		ioremap_strongly_ordered(page_to_pfn(empty_zero_page)
+		<< PAGE_SHIFT, PAGE_SIZE);
 }
-EXPORT_SYMBOL(map_page_strongly_ordered);
 
 void write_to_strongly_ordered_memory(void)
 {
-#if defined(CONFIG_ARCH_MSM7X27)
-	if (!strongly_ordered_page) {
-		if (!in_interrupt())
-			map_page_strongly_ordered();
-		else {
-			printk(KERN_ALERT "Cannot map strongly ordered page in "
-				"Interrupt Context\n");
-			/* capture it here before the allocation fails later */
-			BUG();
-		}
-	}
-	*(int *)strongly_ordered_page = 0;
-#endif
+	map_zero_page_strongly_ordered();
+	*(int *)zero_page_strongly_ordered = 0;
 }
 EXPORT_SYMBOL(write_to_strongly_ordered_memory);
 
 void flush_axi_bus_buffer(void)
 {
-#if defined(CONFIG_ARCH_MSM7X27)
 	__asm__ __volatile__ ("mcr p15, 0, %0, c7, c10, 5" \
 				    : : "r" (0) : "memory");
 	write_to_strongly_ordered_memory();
-#endif
 }
 
 #define CACHE_LINE_SIZE 32
@@ -196,3 +160,11 @@ int platform_physical_low_power_pages(unsigned long start_pfn,
 {
 	return 1;
 }
+
+unsigned long allocate_contiguous_ebi_nomap(unsigned long size,
+	unsigned long align)
+{
+  return _allocate_contiguous_memory_nomap(size, MEMTYPE_EBI0,
+	align, __builtin_return_address(0));
+}
+EXPORT_SYMBOL(allocate_contiguous_ebi_nomap);

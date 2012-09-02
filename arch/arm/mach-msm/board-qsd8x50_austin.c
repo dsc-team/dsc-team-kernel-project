@@ -1349,58 +1349,78 @@ exit:
 #else
 #define bt_power_init(x) do {} while (0)
 #endif	//CONFIG_MSM_BT_POWER
+// POWER RAIL
+// adding some power rail related stuff (this one is taken from marc1706's board-htcleo.c)
+// this code is subject to change as marc noted that using footswitch device is
+// better. currently i'm focused on getting rid of kgsl startup errors, so i have to 
+// figure it really makes a sense for us.
+// kibuuka
 
-static struct resource kgsl_resources[] = {
+//#if 0
+static int austin_kgsl_power_rail_mode(int follow_clk)
        {
-		.name  = "kgsl_reg_memory",
+    int mode = follow_clk ? 0 : 1;
+    int rail_id = 0;
+    return msm_proc_comm(PCOM_CLK_REGIME_SEC_RAIL_CONTROL, &rail_id, &mode);
+}
+
+static int austin_kgsl_power(bool on)
+{
+    int cmd;
+    int rail_id = 0;
+
+	cmd = on ? PCOM_CLK_REGIME_SEC_RAIL_ENABLE : PCOM_CLK_REGIME_SEC_RAIL_DISABLE;
+	return msm_proc_comm(cmd, &rail_id, NULL);
+}
+// #endif
+// end of POWER RAIL
+
+//kgsl-3d0
+static struct resource kgsl_3d0_resources[] = {
+	{
+		.name  = KGSL_3D0_REG_MEMORY,
 		.start = 0xA0000000,
 		.end = 0xA001ffff,
 		.flags = IORESOURCE_MEM,
        },
        {
-		.name   = "kgsl_phys_memory",
-		.start = MSM_GPU_PHYS_BASE,
-		.end = MSM_GPU_PHYS_BASE + MSM_GPU_PHYS_SIZE - 1,
-		.flags = IORESOURCE_MEM,
-       },
-       {
-		.name = "kgsl_yamato_irq",
+		.name = KGSL_3D0_IRQ,
 		.start = INT_GRAPHICS,
 		.end = INT_GRAPHICS,
 		.flags = IORESOURCE_IRQ,
        },
 };
-static struct kgsl_platform_data kgsl_pdata = {
-	.high_axi_3d = 128000, /* Max for 8K */
-	.max_grp2d_freq = 0,
-	.min_grp2d_freq = 0,
-	.set_grp2d_async = NULL,
-	.max_grp3d_freq = 0,
-	.min_grp3d_freq = 0,
-	.set_grp3d_async = NULL,
-	.imem_clk_name = "imem_clk",
-	.grp3d_clk_name = "grp_clk",
-	.grp2d0_clk_name = NULL,
-	.idle_timeout_3d = HZ/5,
-	.idle_timeout_2d = 0,
-#ifdef CONFIG_KGSL_PER_PROCESS_PAGE_TABLE
-	.pt_va_size = SZ_32M,
-	/* Maximum of 32 concurrent processes */
-	.pt_max_count = 32,
-#else
-	.pt_va_size = SZ_128M,
-	/* We only ever have one pagetable for everybody */
-	.pt_max_count = 1,
-#endif
+
+static struct kgsl_device_platform_data kgsl_3d0_pdata = {
+	.pwr_data = {
+		.pwrlevel = {
+			{
+				.gpu_freq = 0,
+				.bus_freq = 128000000,
+			},
+		},
+		.init_level = 0,
+		.num_levels = 1,
+		.set_grp_async = NULL,
+		.idle_timeout = HZ/5,
+	},
+	.clk = {
+		.name = {
+			.clk = "grp_clk",
+		},
+	},
+	.imem_clk_name = {
+		.clk = "imem_clk",
+	},
 };
 
-static struct platform_device msm_device_kgsl = {
-       .name = "kgsl",
-       .id = -1,
-       .num_resources = ARRAY_SIZE(kgsl_resources),
-       .resource = kgsl_resources,
+struct platform_device msm_kgsl_3d0 = {
+	.name = "kgsl-3d0",
+	.id = 0,
+	.num_resources = ARRAY_SIZE(kgsl_3d0_resources),
+	.resource = kgsl_3d0_resources,
 	.dev = {
-		.platform_data = &kgsl_pdata,
+		.platform_data = &kgsl_3d0_pdata,
 	},
 };
 
@@ -2368,7 +2388,7 @@ static struct platform_device *devices[] __initdata = {
 #endif
 // Jagan-
 
-	&msm_device_kgsl,
+	&msm_kgsl_3d0,
 	&hs_device,
 #if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
 	&msm_device_tsif,
@@ -2524,11 +2544,11 @@ static void __init qsd8x50_init_irq(void)
 	msm_init_sirc();
 }
 
-static void kgsl_phys_memory_init(void)
-{
-	request_mem_region(kgsl_resources[1].start,
-		resource_size(&kgsl_resources[1]), "kgsl");
-}
+//static void kgsl_3d0_phys_memory_init(void)		/* don't think it has proper name, yet unsure if it's needed or  works right*/
+//{
+//	request_mem_region(kgsl_3d0_resources[1].start,
+//		resource_size(&kgsl_3d0_resources[1]), "kgsl-3d"); /* ARE we there yet?! */
+//}
 
 static void usb_mpp_init(void)
 {
@@ -3169,13 +3189,23 @@ static void __init qsd8x50_init(void)
 	bt_power_init();
 //	audio_gpio_init();								/* Jagan+ ... Jagan- */
 	msm_device_i2c_init();
+// testing if this gets us anywhere
+//#if 0
+    /* set the gpu power rail to manual mode so clk en/dis will not
+    * turn off gpu power, and hang it on resume */
+
+        austin_kgsl_power_rail_mode(0);
+	austin_kgsl_power(false);
+        mdelay(100);
+	austin_kgsl_power(true);
+//#endif
 //	msm_qsd_spi_init(); 							/* Jagan+ ... Jagan- */
 	i2c_register_board_info(0, msm_i2c_board_info,
 				ARRAY_SIZE(msm_i2c_board_info));
 //	spi_register_board_info(msm_spi_board_info,				/* Jagan+ ... Jagan- */
 //				ARRAY_SIZE(msm_spi_board_info));
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
-	kgsl_phys_memory_init();
+//	kgsl_3d0_phys_memory_init();						/* read above */
 
 #ifdef CONFIG_SURF_FFA_GPIO_KEYPAD
 	if (machine_is_qsd8x50_ffa() || machine_is_qsd8x50a_ffa())

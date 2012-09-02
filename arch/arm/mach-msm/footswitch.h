@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011 Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,17 +29,38 @@
 #ifndef __MSM_FOOTSWITCH__
 #define __MSM_FOOTSWITCH__
 
-enum fs_ids {
-	FS_GFX2D0 = 0,
-	FS_GFX2D1,
-	FS_GFX3D,
-	FS_IJPEG,
-	FS_MDP,
-	FS_ROT,
-	FS_VED,
-	FS_VFE,
-	FS_VPE,
-	MAX_FS
-};
+#include <linux/regulator/machine.h>
+
+/* Device IDs */
+#define FS_GFX2D0	0
+#define FS_GFX2D1	1
+#define FS_GFX3D	2
+#define FS_IJPEG	3
+#define FS_MDP		4
+#define FS_MFC		5
+#define FS_ROT		6
+#define FS_VED		7
+#define FS_VFE		8
+#define FS_VPE		9
+#define MAX_FS		10
+
+#define FS_GENERIC(_drv_name, _id, _name) (&(struct platform_device){ \
+	.name	= (_drv_name), \
+	.id	= (_id), \
+	.dev	= { \
+		.platform_data = &(struct regulator_init_data){ \
+			.constraints = { \
+				.valid_modes_mask = REGULATOR_MODE_NORMAL, \
+				.valid_ops_mask   = REGULATOR_CHANGE_STATUS, \
+			}, \
+			.num_consumer_supplies = 1, \
+			.consumer_supplies = \
+				&(struct regulator_consumer_supply) \
+				REGULATOR_SUPPLY((_name), NULL), \
+		} \
+	}, \
+})
+#define FS_PCOM(_id, _name) FS_GENERIC("footswitch-pcom", (_id), (_name))
+#define FS_8X60(_id, _name) FS_GENERIC("footswitch-8x60", (_id), (_name))
 
 #endif

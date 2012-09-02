@@ -2932,6 +2932,7 @@ unsigned long nr_running(void)
 
 	return sum;
 }
+EXPORT_SYMBOL_GPL(nr_running);
 
 unsigned long nr_uninterruptible(void)
 {
@@ -8365,6 +8366,11 @@ void sched_move_task(struct task_struct *tsk)
 		dequeue_task(rq, tsk, 0);
 	if (unlikely(running))
 		tsk->sched_class->put_prev_task(rq, tsk);
+
+#ifdef CONFIG_FAIR_GROUP_SCHED
+	if (tsk->sched_class->prep_move_group)
+		tsk->sched_class->prep_move_group(tsk, on_rq);
+#endif
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	if (tsk->sched_class->task_move_group)

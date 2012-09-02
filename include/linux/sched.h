@@ -1083,6 +1083,7 @@ struct sched_class {
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	void (*task_move_group) (struct task_struct *p, int on_rq);
+	void (*prep_move_group) (struct task_struct *p, int on_rq);
 #endif
 };
 
@@ -1182,8 +1183,11 @@ struct task_struct {
 #ifndef CONFIG_SCHED_BFS
 #ifdef CONFIG_SMP
 #ifdef __ARCH_WANT_UNLOCKED_CTXSW
-	int oncpu;
+	bool oncpu;
 #endif
+#endif
+#ifndef CONFIG_SCHED_BFS
+	bool on_rq;
 #endif
 #else /* CONFIG_SCHED_BFS */
 	int oncpu;
@@ -1198,7 +1202,7 @@ struct task_struct {
 	u64 last_ran;
 	u64 sched_time; /* sched_clock time spent running */
 #ifdef CONFIG_SMP
-	int sticky; /* Soft affined flag */
+	bool sticky; /* Soft affined flag */
 #endif
 	unsigned long rt_timeout;
 #else /* CONFIG_SCHED_BFS */
@@ -1228,11 +1232,13 @@ struct task_struct {
 	unsigned int policy;
 	cpumask_t cpus_allowed;
 
-#ifdef CONFIG_TREE_PREEMPT_RCU
+#ifdef CONFIG_PREEMPT_RCU
 	int rcu_read_lock_nesting;
 	char rcu_read_unlock_special;
-	struct rcu_node *rcu_blocked_node;
 	struct list_head rcu_node_entry;
+#endif /* #ifdef CONFIG_PREEMPT_RCU */
+#ifdef CONFIG_TREE_PREEMPT_RCU
+	struct rcu_node *rcu_blocked_node;
 #endif /* #ifdef CONFIG_TREE_PREEMPT_RCU */
 
 #if defined(CONFIG_SCHEDSTATS) || defined(CONFIG_TASK_DELAY_ACCT)
@@ -1526,7 +1532,7 @@ struct task_struct {
 };
 
 #ifdef CONFIG_SCHED_BFS
-extern int grunqueue_is_locked(void);
+extern bool grunqueue_is_locked(void);
 extern void grq_unlock_wait(void);
 extern void cpu_scaling(int cpu);
 extern void cpu_nonscaling(int cpu);
@@ -1546,14 +1552,15 @@ static inline void tsk_cpus_current(struct task_struct *p)
 
 static inline void print_scheduler_version(void)
 {
-	printk(KERN_INFO"BFS CPU scheduler v0.404 by Con Kolivas.\n");
+	printk(KERN_INFO"BFS CPU scheduler v0.413 by Con Kolivas.\n");
 }
 
-static inline int iso_task(struct task_struct *p)
+static inline bool iso_task(struct task_struct *p)
 {
 	return (p->policy == SCHED_ISO);
 }
-extern void remove_cpu(unsigned long cpu);
+extern void remove_cpu(int cpu);
+extern int above_background_load(void);
 #else /* CFS */
 extern int runqueue_is_locked(int cpu);
 static inline void cpu_scaling(int cpu)
@@ -1585,13 +1592,19 @@ static inline void print_scheduler_version(void)
 	printk(KERN_INFO"CFS CPU scheduler.\n");
 }
 
-static inline int iso_task(struct task_struct *p)
+static inline bool iso_task(struct task_struct *p)
 {
-	return 0;
+	return false;
 }
 
-static inline void remove_cpu(unsigned long cpu)
+static inline void remove_cpu(int cpu)
 {
+}
+
+/* Anyone feel like implementing this? */
+static inline int above_background_load(void)
+{
+	return 1;
 }
 #endif /* CONFIG_SCHED_BFS */
 
@@ -1850,7 +1863,7 @@ extern int task_free_unregister(struct notifier_block *n);
 #define tsk_used_math(p) ((p)->flags & PF_USED_MATH)
 #define used_math() tsk_used_math(current)
 
-#ifdef CONFIG_TREE_PREEMPT_RCU
+#ifdef CONFIG_PREEMPT_RCU
 
 #define RCU_READ_UNLOCK_BLOCKED (1 << 0) /* blocked while in RCU read-side. */
 #define RCU_READ_UNLOCK_NEED_QS (1 << 1) /* RCU core needs CPU response. */
@@ -1859,7 +1872,9 @@ static inline void rcu_copy_process(struct task_struct *p)
 {
 	p->rcu_read_lock_nesting = 0;
 	p->rcu_read_unlock_special = 0;
+#ifdef CONFIG_TREE_PREEMPT_RCU
 	p->rcu_blocked_node = NULL;
+#endif
 	INIT_LIST_HEAD(&p->rcu_node_entry);
 }
 
@@ -2532,21 +2547,21 @@ extern void signal_wake_up(struct task_struct *t, int resume_stopped);
  */
 #ifdef CONFIG_SMP
 
-static inline unsigned int task_cpu(const struct task_struct *p)
+static inline int task_cpu(const struct task_struct *p)
 {
 	return task_thread_info(p)->cpu;
 }
 
-extern void set_task_cpu(struct task_struct *p, unsigned int cpu);
+extern void set_task_cpu(struct task_struct *p, int cpu);
 
 #else
 
-static inline unsigned int task_cpu(const struct task_struct *p)
+static inline int task_cpu(const struct task_struct *p)
 {
 	return 0;
 }
 
-static inline void set_task_cpu(struct task_struct *p, unsigned int cpu)
+static inline void set_task_cpu(struct task_struct *p, int cpu)
 {
 }
 
