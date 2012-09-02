@@ -23,8 +23,6 @@ extract both archives in /usr/src/dell/
  - download with git:
     git clone git@github.com:dsc-team/dsc-team-kernel-project.git
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 =======
 kernel source will be in /usr/src/dell/dsc-team-kernel-project
 
@@ -78,8 +76,6 @@ if something goes wrong - transfer back your original kernel:
 ./fastboot -i 0x413c flash boot boot.img
 
 
->>>>>>> Phoenix
-
 Update: 
 @Team:
 
@@ -104,10 +100,5 @@ git clone git@github.com:dsc-team/dsc-team-kernel-project.git -b experimental14
 
 
 
-<<<<<<< HEAD
 LTrifonov
 =======
->>>>>>> Phoenix
-=======
-LTrifonov
->>>>>>> Phoenix
