@@ -33,7 +33,6 @@
 
 #include <typedefs.h>
 
-
 /* require default structure packing */
 #define BWL_DEFAULT_PACKING
 #include <packed_section_start.h>

@@ -147,7 +147,9 @@ static long pcm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			rc = -EFAULT;
 			break;
 		}
+        if (pcm->ac) 
 		rc = q6audio_set_stream_eq_pcm(pcm->ac, (void *) &eq_config);
+	else rc = -EFAULT;
 		break;
 	}
 	default:

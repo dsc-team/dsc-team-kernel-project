@@ -39,22 +39,18 @@
 #define _fn	_fn
 #define CONST	const
 
-
-
 #define _data	_data
 #define _fn		_fn
 #define _fn	_fn
 #define STATIC	static
 
-
-#define	SI_BUS			0	
-#define	PCI_BUS			1	
-#define	PCMCIA_BUS		2	
-#define SDIO_BUS		3	
-#define JTAG_BUS		4	
-#define USB_BUS			5	
-#define SPI_BUS			6	
-
+#define	SI_BUS			0
+#define	PCI_BUS			1
+#define	PCMCIA_BUS		2
+#define SDIO_BUS		3
+#define JTAG_BUS		4
+#define USB_BUS			5
+#define SPI_BUS			6
 
 #ifdef BCMBUSTYPE
 #define BUSTYPE(bus) 	(BCMBUSTYPE)

@@ -24,7 +24,11 @@
 #include <linux/kernel.h>
 #include <linux/kthread.h>
 #include <linux/delay.h>
-
+//n0p
+#include <linux/cpufreq.h>
+#include "acpuclock.h"
+#include "clock.h"
+//
 #include <mach/msm_rpcrouter.h>
 #include "smd_rpcrouter.h"
 // Jagan+ (31 Mar 2011)
@@ -104,10 +108,12 @@ static int rpc_clients_thread(void *data)
 	struct rpc_request_hdr req;
 // Jagan+ (31 Mar 2011)
 #ifdef CONFIG_SPEEDUP_KEYRESUME
+#if (1)
 	struct sched_param smdrpcrouterclient_s = { .sched_priority = 88 };
 	struct sched_param smdrpcrouterclient_v = { .sched_priority = 0 };
 	int smdrpcrouterclient_old_prio = 0;
  	int smdrpcrouterclient_old_policy = 0;
+#endif
 #endif
 // Jagan-
 	client = data;
@@ -145,6 +151,17 @@ static int rpc_clients_thread(void *data)
                     {
                         if (req.prog == HS_RPC_CB_PROG)
                         {
+
+/*
+//n0p
+#ifdef CONFIG_DSC_KICKCPU
+                printk ("DSC: kick CPU on speedup resume");
+                acpuclk_set_rate(0, 576000, SETRATE_CPUFREQ);
+                usleep(200);
+#endif
+*/
+
+#if (1)
 						    smdrpcrouterclient_old_prio = current->rt_priority;
  						    smdrpcrouterclient_old_policy = current->policy;
  						    if (!(unlikely(smdrpcrouterclient_old_policy == SCHED_FIFO) || unlikely(smdrpcrouterclient_old_policy == SCHED_RR)))
@@ -154,8 +171,10 @@ static int rpc_clients_thread(void *data)
    						    	else
    						    		printk(KERN_ERR "[SEAN]uppp rpc_clients_thread, rt_pri=%d,pri=%d\n",current->rt_priority,current->prio);
    						    }
+#endif
 						    client->cb_func(client,
 						    client->cb_xdr.in_buf, rc);
+#if (1)
  						    if (!(unlikely(smdrpcrouterclient_old_policy == SCHED_FIFO) || unlikely(smdrpcrouterclient_old_policy == SCHED_RR)))
  						    {
   						    	smdrpcrouterclient_v.sched_priority = smdrpcrouterclient_old_prio;
@@ -164,6 +183,7 @@ static int rpc_clients_thread(void *data)
    						    	else
    						    		printk(KERN_ERR "[SEAN]down rpc_clients_thread, rt_pri=%d,pri=%d\n",current->rt_priority,current->prio);
   						    }
+#endif
                         }
                         else
                         {

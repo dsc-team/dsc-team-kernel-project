@@ -6,7 +6,7 @@
 #define USE_AUO_5INCH       1
 
 /* Touchscreen Co-ordinates Settings
-	#define TOUCH_FB_PORTRAIT   1						
+	#define TOUCH_FB_PORTRAIT   1
 */ /* Jagan */
 
 #if defined (CONFIG_MACH_EVB) || defined(CONFIG_MACH_EVT0)
@@ -33,8 +33,6 @@
 #define TOUCH_INDI_INT_MODE 1
 #define COORD_COMP_INT_MODE 0
 #endif
-
-
 
 #define AUO_REPORT_POINTS     2
 #define AUO_INT_ENABLE        0x08

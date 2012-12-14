@@ -39,9 +39,6 @@
 #include "proc_comm.h"
 #include "modem_notifier.h"
 
-/* DUMPXXX */
-#if defined (CONFIG_QSD_ARM9_CRASH_FUNCTION)
-
 #include <linux/logger.h>
 
 #include <linux/workqueue.h>
@@ -51,6 +48,8 @@
 #include <linux/wakelock.h>
 #include <linux/pm_qos_params.h>
 
+
+#if defined (CONFIG_QSD_ARM9_CRASH_FUNCTION)
 #if defined (DUMPXXX_TO_SDCARD)
 #include <linux/ashmem.h>
 #include <linux/file.h>
@@ -921,7 +920,8 @@ static void smd_crash_show_errmsg(struct work_struct *work)
 
     pm_qos_update_request(smd_qos_req_list, 0);	      /* Jagan+ ... Jagan- */
 
-#ifdef CONFIG_BUILDTYPE_SHIP
+#if 0
+//#ifdef CONFIG_BUILDTYPE_SHIP
     SMD_CRASH_LOG( "%s: restart system\n", __func__);
     queue_delayed_work(restart_work_queue, &smd_crash_restart_worker,
                         MODEM_CRASH_RESTART_TIMEOUT);
@@ -2533,7 +2533,7 @@ static int __devinit msm_smd_probe(struct platform_device *pdev)
     msm_smd_debug_mask = 0x0 ;
 
 	SMD_INFO("smd probe\n");
-
+//#if defined (CONFIG_QSD_ARM9_CRASH_FUNCTION)
        smd_qos_req_list = pm_qos_add_request(PM_QOS_CPU_DMA_LATENCY,
                                             PM_QOS_DEFAULT_VALUE);
        if (IS_ERR(smd_qos_req_list)) {

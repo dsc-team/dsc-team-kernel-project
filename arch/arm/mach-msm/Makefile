@@ -131,8 +131,8 @@ obj-$(CONFIG_MACH_TROUT) += board-trout-mmc.o board-trout-wifi.o
 obj-$(CONFIG_ARCH_QSD8X50) += devices-qsd8x50.o
 
 ifdef CONFIG_HW_AUSTIN
-        obj-$(CONFIG_MACH_QSD8X50_SURF) += board-qsd8x50_austin.o
-        obj-$(CONFIG_MACH_QSD8X50_FFA)  += board-qsd8x50_austin.o
+        obj-$(CONFIG_MACH_QSD8X50_SURF) += board-qsd8x50_austin.o leds_austin.o
+        obj-$(CONFIG_MACH_QSD8X50_FFA)  += board-qsd8x50_austin.o leds_austin.o
 else
 ifdef CONFIG_HW_TOUCAN
         obj-$(CONFIG_MACH_QSD8X50_SURF) += board-qsd8x50_toucan.o

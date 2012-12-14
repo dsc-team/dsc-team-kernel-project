@@ -30,7 +30,6 @@
 
 #define RTC_WORKAROUD_BY_DISPLAYDRIVER	1
 
-
 #define LONGCHARGER48HR_WAKEUP_HANG_ATLCD_WORKAROUND	1
 #if	LONGCHARGER48HR_WAKEUP_HANG_ATLCD_WORKAROUND
 #include <linux/wakelock.h>
@@ -55,6 +54,9 @@ static struct wake_lock lcd_idlelock;
 #define DEEP_SLEEP_MODE 1
 #define	LCD_PWR_OFF	1
 #define MDDI_FB_PORTRAIT 1
+
+//#undef MDDI_FB_PORTRAIT
+
 #define ESD_SOLUTION 1
 
 
@@ -94,12 +96,11 @@ static bool dynamic_log_ebable = 0;
 
 
 
-
-
 static struct led_classdev auo_lcd_bkl;
 static char auo_lcd_bkl_mode = LCD_BKL_MODE_NORMAL;
 static atomic_t auo_lcd_enable = ATOMIC_INIT(0);
 static int  bkl_labc_stage = 0xFFFFFFFF;
+module_param(bkl_labc_stage,int,0644);
 
 static unsigned int als_enabled=0;
 static unsigned int als_lux_value=500;
@@ -129,21 +130,66 @@ static const unsigned int auo_lcd_bkl_init_array[] = {
 
 static const unsigned int bkl_labc_array[6][21] =  
 {
-  
+#if (0)
+  { 0x57000000,0x5701001E,0x57040000,0x57050090,
+  0x57080000,0x570900E0,0x570C0001,0x570D0070,
+  0x57100003,0x571100FF,0x57020000,0x57030010,
+  0x57060000,0x57070083,0x570A0000,0x570B00D6,
+  0x570E0001,0x570F0030,0x57120003,0x571300FF,
+  0xFFFFFFFF  },
+
+  { 0x57000000,0x5701001E,0x57040000,0x5705009A,
+  0x57080000,0x570900FC,0x570C0001,0x570D009A,
+  0x57100003,0x571100FF,0x57020000,0x57030010,
+  0x57060000,0x5707008A,0x570A0000,0x570B00E3,
+  0x570E0001,0x570F0055,0x57120003,0x571300FF,
+  0xFFFFFFFF  },
+
+  { 0x57000000,0x5701001E,0x57040000,0x570500AB,
+  0x57080001,0x57090020,0x570C0001,0x570D00D5,
+  0x57100003,0x571100FF,0x57020000,0x57030010,
+  0x57060000,0x57070095,0x570A0000,0x570B00F8,
+  0x570E0001,0x570F0080,0x57120003,0x571300FF,
+  0xFFFFFFFF  },
+
+  { 0x57000000,0x5701001E,0x57040000,0x570500BC,
+  0x57080001,0x57090042,0x570C0002,0x570D000A,
+  0x57100003,0x571100FF,0x57020000,0x57030045,
+  0x57060000,0x570700A0,0x570A0001,0x570B0020,
+  0x570E0001,0x570F0092,0x57120003,0x571300FF,
+  0xFFFFFFFF  },
+
+  { 0x57000000,0x5701001E,0x57040000,0x570500D2,
+  0x57080001,0x57090058,0x570C0002,0x570D0045,
+  0x57100003,0x571100FF,0x57020000,0x57030010,
+  0x57060000,0x570700A9,0x570A0001,0x570B002C,
+  0x570E0001,0x570F00C3,0x57120003,0x571300FF,
+  0xFFFFFFFF  },
+
+  { 0x57000000,0x5701001E,0x57040000,0x570500E2,
+  0x57080001,0x57090075,0x570C0002,0x570D004A,
+  0x57100003,0x571100FF,0x57020000,0x57030010,
+  0x57060000,0x570700B6,0x570A0001,0x570B004B,
+  0x570E0001,0x570F00E6,0x57120003,0x571300FF,
+  0xFFFFFFFF  },
+};
+
+#else
+
   { 0x57000000,0x57010034,0x57040000,0x57050090,
   0x57080000,0x570900E0,0x570C0001,0x570D0070,
   0x57100003,0x571100FF,0x57020000,0x5703002A,
   0x57060000,0x57070083,0x570A0000,0x570B00D6,
   0x570E0001,0x570F0030,0x57120003,0x571300FF,
   0xFFFFFFFF  },
-  
+
   { 0x57000000,0x5701004A,0x57040000,0x5705009A,
   0x57080000,0x570900FC,0x570C0001,0x570D009A,
   0x57100003,0x571100FF,0x57020000,0x5703003A,
   0x57060000,0x5707008A,0x570A0000,0x570B00E3,
   0x570E0001,0x570F0055,0x57120003,0x571300FF,
   0xFFFFFFFF  },
-  
+
   { 0x57000000,0x57010060,0x57040000,0x570500AB,
   0x57080001,0x57090020,0x570C0001,0x570D00D5,
   0x57100003,0x571100FF,0x57020000,0x57030042,
@@ -172,6 +218,7 @@ static const unsigned int bkl_labc_array[6][21] =
   0x570E0001,0x570F00E6,0x57120003,0x571300FF,
   0xFFFFFFFF  }
 };
+#endif
 
 static unsigned int my_atoh(unsigned char *in, unsigned int len)
 {
@@ -1030,8 +1077,8 @@ static int auo_lcd_on(struct platform_device *pdev)
 		#if LCD_PWR_OFF
 		mddi_lcd_disp_powerup();
 		#endif
-		
-		if(unlikely(mddipanel_registed==0))		
+
+		if(unlikely(mddipanel_registed==0))
 		{
 			#if !defined(MDDI_FB_PORTRAIT)
 			  mddi_queue_register_write(0x3600, 0x63, FALSE, 0);
@@ -1042,7 +1089,7 @@ static int auo_lcd_on(struct platform_device *pdev)
 //
 #else
 			  mddi_queue_register_write(0x3600, 0x00, FALSE, 0);
-			#endif
+#endif
 			#endif
 			  mddi_queue_register_write(0x3500, 0x0002, FALSE, 0);
 			  mddi_queue_register_write(0x4400, 0x0000, FALSE, 0);
@@ -1050,7 +1097,8 @@ static int auo_lcd_on(struct platform_device *pdev)
 			  mddi_queue_register_write(0xB102, t2_register & 0xFF, FALSE, 0);
 
 			write_multi_mddi_reg(auo_lcd_bkl_init_array);
-			if(bkl_labc_stage == 0xFFFFFFFF)
+			if(
+bkl_labc_stage == 0xFFFFFFFF)
 			{
 			  bkl_labc_stage = qsd_lsensor_read_cal_data();
 			  MSG2("labc stage = %d", bkl_labc_stage);
@@ -1213,6 +1261,7 @@ static struct platform_device this_device = {
 void mddi_lcd_disp_powerup(void)
 {
 	struct vreg	*vreg_mddi_lcd = vreg_get(0, "gp1");
+
 	vreg_enable(vreg_mddi_lcd);
 	vreg_set_level(vreg_mddi_lcd, 3000);
 	printk(KERN_ERR "Jackie: turn on vreg 3.0V for LCD panel\n");

@@ -22,6 +22,18 @@
 #ifdef CONFIG_WAKELOCK_STAT
 #include <linux/proc_fs.h>
 #endif
+
+//n0p
+#include <linux/cpufreq.h>
+#include <../../../arch/arm/mach-msm/acpuclock.h>
+#include <../../../arch/arm/mach-msm/clock.h>
+extern int tps65023_set_dcdc1_level(int vdd);
+#include <linux/delay.h>
+static uint kick = 0;
+module_param(kick, uint, 0644);
+static uint nosync = 0;
+module_param(nosync, uint, 0644);
+
 #include "power.h"
 
 #include <mach/kevent.h>						/* Jagan+ ... Jagan- */
@@ -294,10 +306,9 @@ static void suspend(struct work_struct *work)
 
 	entry_event_num = current_event_num;
 // Jagan+	
-#ifdef CONFIG_SPEEDUP_RESUME_NOTDOSYNC
-#else
-	sys_sync();
-#endif
+
+if (!nosync) sys_sync();
+
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("suspend: enter suspend\n");
 	suspend_task = current;
@@ -316,6 +327,29 @@ static void suspend(struct work_struct *work)
 			"(%d-%02d-%02d %02d:%02d:%02d.%09lu UTC)\n", ret,
 			tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 			tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
+
+		//n0p - we need to kick cpu here.
+#ifdef CONFIG_DSC_KICKCPU
+		if (kick) {
+                	printk("DSC: kick CPU on resume.\n");
+		   	if (kick == 998400) {
+		                tps65023_set_dcdc1_level(1300);
+		                //n0p - 300 nanoseconds for TPS chip
+		                usleep(350);
+		                acpuclk_set_rate(0, 998400, SETRATE_CPUFREQ);
+		                usleep(350);
+		                cpufreq_update_policy(0);
+		   } else {
+                		tps65023_set_dcdc1_level(1050);
+		                //n0p - 300 nanoseconds for TPS chip
+			        usleep(350);
+		                acpuclk_set_rate(0, 576000, SETRATE_CPUFREQ);
+		                usleep(350);
+		                cpufreq_update_policy(0);
+		   };
+		};
+#endif
+
 	}
 	if (current_event_num == entry_event_num) {
 		if (debug_mask & DEBUG_SUSPEND)

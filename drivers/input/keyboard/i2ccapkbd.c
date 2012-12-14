@@ -76,6 +76,7 @@ static bool dynamic_log_ebable = 0;
 
 static int  cap_button_light = 0x007F7F7F;
 void qi2ccapkybd_update_led(unsigned int light);
+void qi2ccapkybd_update_led_forced(unsigned int light);
 
 enum kbd_inevents {
   QKBD_IN_KEYPRESS        = 1,
@@ -212,8 +213,8 @@ static int32_t cap_i2c_write(struct i2c_client *kbd, struct capsensor_reg_t *reg
 		udelay(200);
 		if ( i2c_transfer( kbd->adapter, msg, 1) < 0 ) {
 			printk("NAK cap_i2c_write retry: write %Xh=0x%X failed\n", regs->addr, regs->data );
-            return -EIO;
-        }
+            		return -EIO;
+		}
         }
 
     return 1;
@@ -256,8 +257,8 @@ static int32_t cap_i2c_read(struct i2c_client *kbd, struct capsensor_reg_t *regs
                 ret = i2c_transfer(kbd->adapter, msgs, 2);
 		    if( ret != ARRAY_SIZE(msgs) ) {
 			  printk(KERN_ERR "NAK cap_i2c_read retry: read %d bytes return failure,buf=0x%xh , size=%d\n", ret, (unsigned int)buf, (unsigned int)size );
-        return ret;
-    }
+		        return ret;
+                    }
     }
 
     regs->data = (dataBuf[0]<<8) | (dataBuf[1]);
@@ -556,6 +557,30 @@ static ssize_t qsd_led_button_led_show(struct device *dev, struct device_attribu
 
 exit:
   return ret;
+}
+
+void qi2ccapkybd_update_led_forced(unsigned int light)
+{
+static int is_in_suspend;
+struct i2c_client *kbd = kbd_data.mykeyboard;
+struct   capsensor_reg_t temp_write;
+atomic_read(&capsensor_is_in_suspend);
+if (is_in_suspend)
+    {
+        temp_write.addr = 0x1;
+        temp_write.data = 0x0030;
+	cap_i2c_write(kbd, &temp_write, 1);
+    }
+printk("DSC: Led update called");
+//n0p - turn on the lights :)
+qi2ccapkybd_update_led(light);
+
+if (is_in_suspend)
+    {  
+        temp_write.addr = 0x1;
+        temp_write.data = 0x0080;
+	cap_i2c_write(kbd, &temp_write, 1);
+    }
 }
 
 static ssize_t qsd_led_button_led_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -1349,3 +1374,4 @@ static void __exit qi2ccapkybd_exit(void)
 
 module_init(qi2ccapkybd_init);
 module_exit(qi2ccapkybd_exit);
+

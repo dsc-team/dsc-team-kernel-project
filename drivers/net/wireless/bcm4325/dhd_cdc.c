@@ -73,9 +73,13 @@
 				 */
 //n0p - this should be set to:
 //0 - disable completely
-//1 - PM_FAST (middle value)
-//2 - default, PM_MAX mode
-#define DSC_WIFI_POWERMODE 2
+//2 - PM_FAST (middle value)
+//1 - default, PM_MAX mode
+//#define DSC_WIFI_POWERMODE 2
+static int dhd_pm_active = 2;
+static int dhd_pm_suspended = 1;
+module_param(dhd_pm_active,int,0644);
+module_param(dhd_pm_suspended,int,0644);
 
 extern int q_wlan_flag;
 extern void msm_get_wlan_mac_addr(uint8_t *mac_addr, uint8_t length);
@@ -516,13 +520,8 @@ dhd_prot_dstats(dhd_pub_t *dhd)
 int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
 //n0p
-#if (DSC_WIFI_POWERMODE==0)
-	int power_mode = PM_OFF;
-#elif (DSC_WIFI_POWERMODE==1)
-        int power_mode = PM_FAST;
-#elif (DSC_WIFI_POWERMODE==2)
-	int power_mode = PM_MAX;
-#endif
+	int power_mode = dhd_pm_suspended;
+
 	wl_pkt_filter_enable_t	enable_parm;
 	char iovbuf[32];
 	int bcn_li_dtim = 3;
@@ -553,11 +552,9 @@ int dhd_set_suspend(int value, dhd_pub_t *dhd)
 #endif /* CONFIG_KT */
 		} else {
 //n0p
-#if (DSC_WIFI_POWERMODE==0)
-			power_mode = PM_OFF;
-#else
-			power_mode = PM_FAST;
-#endif
+			power_mode = dhd_pm_active;
+			//if ( power_mode == PM_MAX ) power_mode = PM_FAST;
+
 			dhdcdc_set_ioctl(dhd, 0, WLC_SET_PM, (char *)&power_mode,
 				sizeof(power_mode));
 			/* disable pkt filter */
@@ -631,7 +628,10 @@ dhd_keep_alive_enable(dhd_pub_t * dhd)
         buf_len=str_len+1;
 
 	keep_alive_pktp=(wl_keep_alive_pkt_t *) (buf+str_len+1);
+
         keep_alive_pkt.period_msec=htod32(30000);
+	//n0p - reduced value
+        //keep_alive_pkt.period_msec=htod32(3000);
 
 	str="0x6e756c6c207061636b657400";
         printk("%s:str=%s\n",__FUNCTION__,str);
@@ -650,11 +650,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 	char iovbuf[WLC_IOCTL_SMLEN];	/*  Room for "event_msgs" + '\0' + bitvec  */
 	uint up = 0;
 	//n0p
-#if (DSC_WIFI_POWERMODE==0)
-	uint power_mode = PM_OFF;
-#else
-	uint power_mode = PM_FAST;
-#endif
+	uint power_mode = 1;
 	uint32 dongle_align = DHD_SDALIGN;
 	uint32 glom = 0;
 	int ret;
@@ -694,6 +690,11 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
     uint8_t smem_mac_addr[20]={0};
     char tmp_mac[20]={0};
     char custom_mac[]={0x00,0x00,0x00,0x00,0x00,0x00};
+
+
+    //n0p
+    power_mode = dhd_pm_active;
+
     memset(smem_mac_addr, 0, 20); 
     msm_get_wlan_mac_addr(smem_mac_addr, 12);
     sprintf(tmp_mac, "%c%c:%c%c:%c%c:%c%c:%c%c:%c%c", smem_mac_addr[0], smem_mac_addr[1],
@@ -782,7 +783,8 @@ strcpy(dhd->country_code,"JP");
 	dhdcdc_query_ioctl(dhd, 0, WLC_GET_VAR, iovbuf, sizeof(iovbuf));
 	bcopy(iovbuf, eventmask, WL_EVENTING_MASK_LEN);
 
-	dhd_keep_alive_enable(dhd);
+//n0p
+//	dhd_keep_alive_enable(dhd);
 
 	/* Setup event_msgs */
 	setbit(eventmask, WLC_E_SET_SSID);

@@ -30,6 +30,9 @@ enum {
 static int debug_mask = DEBUG_USER_STATE;
 module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 
+static uint nosync = 0;
+module_param(nosync, uint, 0644);
+
 static DEFINE_MUTEX(early_suspend_lock);
 static LIST_HEAD(early_suspend_handlers);
 static void early_suspend(struct work_struct *work);
@@ -134,13 +137,9 @@ static void early_suspend(struct work_struct *work)
 
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("early_suspend: sync\n");
-// Jagan+
-#ifdef CONFIG_SPEEDUP_RESUME_NOTDOSYNC
-#else
-	sys_sync();
-#endif
-// Jagan-
-	
+
+if (!nosync) sys_sync();
+
 abort:
 	spin_lock_irqsave(&state_lock, irqflags);
 	if (state == SUSPEND_REQUESTED_AND_SUSPENDED)

@@ -916,9 +916,7 @@ static void qsd_bat_work_func(struct work_struct *work)
   else
     qb_data.bat_present = 0;
 
-  
-  
-  
+
   if(qb_data.gagic_err || !TST_BIT(gag_data[GAG_FLAG],5)) 
   {
     qb_data.bat_status = POWER_SUPPLY_STATUS_UNKNOWN;
@@ -928,18 +926,19 @@ static void qsd_bat_work_func(struct work_struct *work)
     qb_data.bat_status = POWER_SUPPLY_STATUS_DISCHARGING;
   }
 
-  else if(TST_BIT(gag_data[GAG_FLAG],9) || (qb_data.bat_capacity == 100)) 
-  {
+  else if(TST_BIT(gag_data[GAG_FLAG],9) || (qb_data.bat_capacity == 100))
+       {
 	  if (use_mugen) {
 	      if (chg_current_term_old)
-    qb_data.bat_status = POWER_SUPPLY_STATUS_FULL;
+              qb_data.bat_status = POWER_SUPPLY_STATUS_FULL;
               }
           else qb_data.bat_status = POWER_SUPPLY_STATUS_FULL;
-    if(TST_BIT(chg_reg_30_39[6],6)) 
-    {
-      qb_data.jiff_charging_timeout = jiffies + 30*24*60*60*HZ;  
-    }
-  }
+          if(TST_BIT(chg_reg_30_39[6],6))
+             {
+               qb_data.jiff_charging_timeout = jiffies + 30*24*60*60*HZ;
+             }
+       }
+
   else if(gag_data[GAG_AI] == 0)
   {
     qb_data.bat_status = POWER_SUPPLY_STATUS_NOT_CHARGING;

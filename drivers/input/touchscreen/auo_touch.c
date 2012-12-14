@@ -39,6 +39,12 @@
 #include <mach/../../proc_comm.h>
 #include <mach/smem_pc_oem_cmd.h>
 
+//n0p
+#include <linux/cpufreq.h>
+#include <../../../arch/arm/mach-msm/acpuclock.h>
+#include <../../../arch/arm/mach-msm/clock.h>
+extern int tps65023_set_dcdc1_level(int vdd);
+
 #define SPEED_DISABLETOUCH_WHEN_PSENSORACTIVE 0
 
 #if SPEED_DISABLETOUCH_WHEN_PSENSORACTIVE
@@ -65,6 +71,8 @@ module_param(printDebug, uint, 0644);
 static uint printReport = 0;
 module_param(printReport, uint, 0644);
 
+static uint deepfreeze = 1;
+module_param(deepfreeze, uint, 0644);
 
 struct ts_t {
     struct i2c_client        *client_4_i2c;
@@ -1201,12 +1209,25 @@ static long ts_misc_ioctl ( struct file *fp,
             }
 
             if( power.on ) {
-                printk("DSC Voodoo: TS resume");
-                rc = ts_resume_ic(g_ts, client);
+                printk("DSC: Voodoo TS re-resume in misc ioctl.\n");
+		rc = ts_resume_ic(g_ts, client);
 		usleep(100);
                 rc = ts_suspend_ic(g_ts, client);
 		usleep(100);
                 rc = ts_resume_ic(g_ts, client);
+
+/*
+#ifdef CONFIG_DSC_KICKCPU
+                printk ("DSC: kick CPU on touchscreen resume in misc ioctl.\n");
+		tps65023_set_dcdc1_level(1300);
+		//n0p - 300 nanoseconds for TPS chip 
+		usleep(300);
+                acpuclk_set_rate(0, 998400, SETRATE_CPUFREQ);
+		usleep(300);
+		cpufreq_update_policy(0);
+#endif
+*/
+
             } else
                 rc = ts_suspend_ic(g_ts, client);
 
@@ -1423,6 +1444,7 @@ static int ts_suspend_ic(struct ts_t *ts, struct i2c_client *client)
     if (ret)
         enable_irq(ts->irq);
 
+if (deepfreeze) {
     if(system_rev >= EVT2P2_Band125)
     {
         uint8_t addr, data;
@@ -1441,6 +1463,7 @@ static int ts_suspend_ic(struct ts_t *ts, struct i2c_client *client)
 		}
         rc = ts_write_i2c( client, addr, &data, 1);
     }
+}
 
 exit_suspend:
     if( rc ) TCH_DBG( "%s: touch suspend failed\n", __func__);
@@ -1458,9 +1481,10 @@ static int ts_resume_ic(struct ts_t *ts, struct i2c_client *client)
     if( 0 == g_touch_suspended )
         goto exit_resume;
 
-    printk("DSC: TS resume");
+    printk("DSC: TS resume - start.\n");
 //    ts_reset_panel(ts);
-
+//n0p
+if (deepfreeze) {
     if(system_rev >= EVT2P2_Band125)
     {
 	    if( g_pixcir_freeze )
@@ -1474,26 +1498,40 @@ static int ts_resume_ic(struct ts_t *ts, struct i2c_client *client)
 
 		    data &= (~AUO_POWER_MODE_MASK);
 		    data |= (ACTIVE_POWER_MODE - ACTIVE_POWER_MODE);
-            TCH_DBG("ts_resume_ic: leave deep sleep mode, write %xh=%x\n", addr, data);
+                    TCH_DBG("ts_resume_ic: leave deep sleep mode, write %xh=%x\n", addr, data);
 		    rc = ts_write_i2c( client, addr, &data, 1);
 
-		    usleep(100);
-		    printk("DSC Voodoo - 1 - sleep");
+   	            usleep(100);
+
+		    printk("DSC: Voodoo - re-resume after deepfreeze.\n");
+		    //printk("DSC: Voodoo - 1 - sleep");
 		    data &= (~AUO_POWER_MODE_MASK);
                     data |= (DEEP_SLEEP_POWER_MODE - ACTIVE_POWER_MODE);
 
 		    usleep(100);
-                    printk("DSC Voodoo - 2 - resume");
+
+                    //printk("DSC: Voodoo - 2 - resume");
 		    data &= (~AUO_POWER_MODE_MASK);
                     data |= (ACTIVE_POWER_MODE - ACTIVE_POWER_MODE);
                     rc = ts_write_i2c( client, addr, &data, 1);
-
+/*
+#ifdef CONFIG_DSC_KICKCPU
+                printk("DSC: kick CPU on touchscreen resume after deepfreeze.\n");
+                tps65023_set_dcdc1_level(1300);
+                //n0p - 300 nanoseconds for TPS chip
+                usleep(300);
+                acpuclk_set_rate(0, 998400, SETRATE_CPUFREQ);
+                usleep(300);
+                cpufreq_update_policy(0);
+#endif
+*/
 		    if( rc ) goto exit_resume;
 		}
 
         rc = ts_config_panel(ts);
         if( rc ) goto exit_resume;
     }
+}
 
     if( !rc )
     {

@@ -27,6 +27,8 @@
 
 #include "avs.h"
 
+#define AVSDEBUG printk
+
 #define AVSDSCR_INPUT 0x01004860 /* magic # from circuit designer */
 #define TSCSR_INPUT   0x00000001 /* enable temperature sense */
 

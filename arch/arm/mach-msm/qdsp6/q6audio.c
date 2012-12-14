@@ -78,7 +78,7 @@ struct q6_hw_info {
 #define HW_DEFAULT_MIN_VOLUME -1300
 
 #define HW_KT_HANDSET_MAX_VOLUME      800
-#define HW_KT_HANDSET_MIN_VOLUME	-1300
+#define HW_KT_HANDSET_MIN_VOLUME      -1300
 
 
 
@@ -106,6 +106,9 @@ static s32 bt_a2dp_max_gain 		= HW_DEFAULT_MAX_VOLUME;
 static s32 bt_a2dp_min_gain 		= HW_DEFAULT_MIN_VOLUME;
 static s32 tty_max_gain 			= HW_DEFAULT_MAX_VOLUME;
 static s32 tty_min_gain 			= HW_DEFAULT_MIN_VOLUME;
+
+static s32 eq=0;
+
 #ifdef CONFIG_HW_AUSTIN
 static s32 headset_audio_device_volume 			= HW_HEADSET_AUDIO_DEVICE_VOLUME;
 #endif //CONFIG_HW_AUSTIN
@@ -124,6 +127,9 @@ module_param(tty_max_gain, int, 0644);
 module_param(tty_min_gain, int, 0644);
 module_param(bt_a2dp_max_gain, int, 0644);
 module_param(bt_a2dp_min_gain, int, 0644);
+
+module_param(eq, int, 0644);
+
 #ifdef CONFIG_HW_AUSTIN
 module_param(headset_audio_device_volume, int, 0644);
 #endif   //CONFIG_HW_AUSTIN
@@ -158,6 +164,177 @@ static struct q6_hw_info q6_audio_hw[Q6_HW_COUNT] = {
 };
 #endif 	//HW_DEVICE_VOLUME_TUNING
 // Jagan-
+
+//n0p
+//EQ tryouts
+
+#if (0)
+
+#define BASS_BOOST      0
+#define BASS_CUT        1
+#define BAND_BOOST      2
+#define BAND_CUT        3
+#define TREBLE_BOOST    4
+#define TREBLE_CUT      5
+#define NONE            6
+
+#define FILTER_GAIN_MAX 6
+#define FILTER_GAIN_MIN -6
+
+#define MAX_PRESETS     12
+#define MAX_BAND_COUNT  12
+
+#define PRESET_COUNT    5
+#define BAND_CLUB       5
+#define BAND_DANCE      7
+#define BAND_TECHNO     8
+#define BAND_LIVE       10
+#define BAND_REGGAE     5
+
+#define ADSP_AUDIO_MAX_EQ_BANDS 12
+
+struct adsp_audio_eq_cfg {
+        uint32_t                        enable;
+        /* Number of consequtive bands specified */
+        uint32_t                        num_bands;
+        struct adsp_audio_eq_band       eq_bands[ADSP_AUDIO_MAX_EQ_BANDS];
+} __attribute__ ((packed));
+
+
+static struct adsp_audio_eq_cfg eq_cfg;
+
+uint32_t band_count = 0;
+uint16_t band_id = 0;
+uint32_t centre_freq[MAX_PRESETS][MAX_BAND_COUNT]=
+        {{310,600,1000,3000,6000,0,0,0,0,0,0,0},
+        {60,170,310,3000,6000,12000,14000,0,0,0,0,0},
+        {60,170,310,600,1000,3000,6000,12000,0,0,0,0},
+        {60,170,310,600,1000,3000,6000,12000,14000,16000,0,0},
+        {310,600,1000,3000,6000,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0}};
+
+
+uint32_t filter_type[MAX_PRESETS][MAX_BAND_COUNT]=
+        {{NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {BASS_BOOST,BAND_BOOST,BAND_BOOST,BAND_CUT,BAND_CUT,BAND_CUT,TREBLE_CUT,NONE,NONE,NONE,NONE,NONE},
+        {BASS_BOOST,BAND_BOOST,BAND_BOOST,BAND_CUT,BAND_CUT,BAND_BOOST,BAND_BOOST,TREBLE_BOOST,NONE,NONE,NONE,NONE},
+        {BASS_CUT,BAND_BOOST,BAND_BOOST,BAND_BOOST,BAND_BOOST,BAND_BOOST,BAND_BOOST,BAND_BOOST,BAND_BOOST,TREBLE_BOOST,NONE,NONE},
+        {BAND_CUT,BAND_CUT,BAND_BOOST,BAND_BOOST,BAND_BOOST,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE},
+        {NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE,NONE}};
+
+
+int32_t filter_gain[MAX_PRESETS][MAX_BAND_COUNT] =
+        {{3,4,4,4,3,0,0,0,0,0,0,0},
+        {5,4,2,3,4,4,2,0,0,0,0,0},
+        {5,3,0,-3,-2,0,5,6,0,0,0,0},
+        {3,0,2,2,3,3,3,2,2,1,0,0},
+        {1,3,0,4,4,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0}};
+
+int32_t q_factor[MAX_PRESETS][MAX_BAND_COUNT] =
+        {{0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0}};
+
+
+void set_pcm_eq_center_freq(uint32_t eq_center_freq, uint16_t eq_band_id)
+{
+        eq_cfg.eq_bands[eq_band_id].center_freq_hz = eq_center_freq;
+}
+
+void set_pcm_eq_filter_gain(int32_t eq_filter_gain, uint16_t eq_band_id)
+{
+        if ((eq_filter_gain >= FILTER_GAIN_MIN) || (eq_filter_gain <= FILTER_GAIN_MAX))
+                eq_cfg.eq_bands[eq_band_id].filter_gain = eq_filter_gain;
+        else
+                printk("DSC: invalid filter gain: %d\n", eq_filter_gain);
+}
+
+void set_pcm_eq_filter_type(uint32_t eq_filter_type, uint16_t eq_band_id)
+{
+        switch (eq_filter_type)
+        {
+        case 0:
+                eq_cfg.eq_bands[eq_band_id].filter_type = BASS_BOOST;
+                break;
+        case 1:
+                eq_cfg.eq_bands[eq_band_id].filter_type = BASS_CUT;
+                break;
+        case 2:
+                eq_cfg.eq_bands[eq_band_id].filter_type = BAND_BOOST;
+                break;
+        case 3:
+                eq_cfg.eq_bands[eq_band_id].filter_type = BAND_CUT;
+                break;
+        case 4:
+                eq_cfg.eq_bands[eq_band_id].filter_type = TREBLE_BOOST;
+                break;
+        case 5:
+                eq_cfg.eq_bands[eq_band_id].filter_type = TREBLE_CUT;
+                break;
+        case 6:
+                eq_cfg.eq_bands[eq_band_id].filter_type = NONE;
+                break;
+        }
+}
+
+
+void set_pcm_eq_q_factor(int32_t eq_q_factor, uint16_t eq_band_id)
+{
+        eq_cfg.eq_bands[eq_band_id].q_factor = eq_q_factor;
+}
+
+void set_eq_values(struct audio_client *ac, uint32_t band_value, int32_t i)
+{
+        eq_cfg.enable = 1;
+
+        band_count = band_value;
+        if (band_count < MAX_BAND_COUNT)
+        {
+                eq_cfg.num_bands = band_count;
+                for (band_id = 0; band_id < band_count; band_id++)
+                {
+                        set_pcm_eq_center_freq(centre_freq[i][band_id], band_id);
+                        set_pcm_eq_filter_gain(filter_gain[i][band_id], band_id);
+                        set_pcm_eq_filter_type(filter_type[i][band_id], band_id);
+                        set_pcm_eq_q_factor(q_factor[i][band_id], band_id);
+                }
+        }
+
+        if (q6audio_set_stream_eq_pcm(ac, &eq_cfg)) {
+                printk("DSC: could not set eq params");
+        }
+}
+
+#endif
+//n0p
 
 
 static struct wake_lock wakelock;
@@ -434,6 +611,7 @@ static void audio_client_free(struct audio_client *ac)
 		iounmap(ac->buf[1].data);
 		pmem_kfree(ac->buf[1].phys);
 	}
+//        printk("DSC: audio_client session free %d\n",ac->session);
 	kfree(ac);
 }
 
@@ -467,8 +645,29 @@ static struct audio_client *audio_client_alloc(unsigned bufsz)
 		ac->buf[1].size = bufsz;
 	}
 
+#if (0)
+        switch(eq) {
+                case 1:
+                                set_eq_values(ac, BAND_CLUB, 0);
+                                break;
+               case 2:
+                                set_eq_values(ac, BAND_DANCE, 1);
+                                break;
+               case 3:
+                                set_eq_values(ac, BAND_TECHNO, 2);
+                                break;
+               case 4:
+                                set_eq_values(ac, BAND_LIVE, 3);
+                                break;
+               case 5:
+                                set_eq_values(ac, BAND_REGGAE, 4);
+                                break;
+        };
+#endif
+
 	init_waitqueue_head(&ac->wait);
 	ac->client = adsp;
+//        printk("DSC: audio_client session create %d\n",ac->session);
 
 	return ac;
 
@@ -857,11 +1056,19 @@ static int audio_rx_volume(struct audio_client *ac, uint32_t dev_id, int32_t vol
 	struct adsp_set_dev_volume_command rpc;
 
 	memset(&rpc, 0, sizeof(rpc));
+        rpc.hdr.opcode = ADSP_AUDIO_IOCTL_CMD_SET_DEVICE_VOL;
+        rpc.device_id = ADSP_AUDIO_DEVICE_ID_NULL_SINK_FM_HEADSET;
+        rpc.path = ADSP_PATH_RX;
+        rpc.volume = volume;
+        printk("DSC FM: volume= %d, dev_id = 0x%x\n", rpc.volume, ADSP_AUDIO_DEVICE_ID_NULL_SINK_FM_HEADSET);
+        audio_ioctl(ac, &rpc, sizeof(rpc));
+
+	memset(&rpc, 0, sizeof(rpc));
 	rpc.hdr.opcode = ADSP_AUDIO_IOCTL_CMD_SET_DEVICE_VOL;
 	rpc.device_id = dev_id;
 	rpc.path = ADSP_PATH_RX;
 	rpc.volume = volume;
-	D("ADSP_AUDIO_IOCTL_CMD_SET_DEVICE_VOL: volume= %d, dev_id = 0x%x\n", rpc.volume, dev_id);			/* Jagan+ ... Jagan- */
+	D("ADSP_AUDIO_IOCTL_CMD_SET_DEVICE_VOL: volume= %d, dev_id = 0x%x\n", rpc.volume, dev_id);			/* Jagan+ ... Jagan- */        
 	return audio_ioctl(ac, &rpc, sizeof(rpc));
 }
 

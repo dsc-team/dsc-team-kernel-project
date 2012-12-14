@@ -1364,6 +1364,7 @@ static int kgsl_ioctl_map_user_mem(struct kgsl_process_private *private,
 			}
 		}
 		break;
+
 	}
 	default:
 		KGSL_MEM_ERR("Invalid memory type used\n");

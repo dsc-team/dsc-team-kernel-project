@@ -364,6 +364,8 @@ static unsigned int format2bytesperpixel[NUM_COLOR_FORMATS] = {
 static void config_gmemsize(struct gmem_shadow_t *shadow, int gmem_size)
 {
 	int w = 64, h = 64;	/* 16KB surface, minimum */
+//n0p
+//        int w = 16, h = 16;
 
 	shadow->format = COLORX_8_8_8_8;
 	/* convert from bytes to 32-bit words */

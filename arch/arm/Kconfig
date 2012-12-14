@@ -1752,6 +1752,11 @@ config ARCH_SUSPEND_POSSIBLE
 endmenu
 
 menu "DSC Team Phoenix options"
+     config DSC_KICKCPU
+        bool "Kick CPU to help system waking."
+        default n
+        help
+           Kicks CPU on resume, touch resume, power button.           
      config DSC_PORTRAIT
         bool "Touchscreen portrait patch"
         default n

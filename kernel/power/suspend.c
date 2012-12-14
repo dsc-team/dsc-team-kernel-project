@@ -25,6 +25,9 @@
 
 #include "power.h"
 
+static uint nosync = 0;
+module_param(nosync, uint, 0644);
+
 const char *const pm_states[PM_SUSPEND_MAX] = {
 #ifdef CONFIG_EARLYSUSPEND
 	[PM_SUSPEND_ON]		= "on",
@@ -274,10 +277,9 @@ int enter_state(suspend_state_t state)
 		return -EBUSY;
 
 	printk(KERN_INFO "PM: Syncing filesystems ... ");
-#ifdef CONFIG_SPEEDUP_RESUME_NOTDOSYNC    // Jagan+
-#else
-	sys_sync();
-#endif										// Jagan-
+
+	if (!nosync) sys_sync();
+
 	printk("done.\n");
 
 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);

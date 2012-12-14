@@ -250,6 +250,10 @@ static struct delayed_work      pwrkey_work;
 static struct workqueue_struct *pwrkey_wqueue;
 static int pwrkey_down = 0;
 void q6audio_update_AC_5V_status(int ac_status);
+
+static int keyfilter = 175;
+module_param(keyfilter, int, 0644);
+
 static void pwrkey_work_func(struct work_struct *work)
 {
   unsigned int arg1, arg2;
@@ -359,7 +363,7 @@ static void report_hs_key(uint32_t key_code, uint32_t key_parm)
         }
       }
     }
-	
+
 		break;
 	case SW_HEADPHONE_INSERT_W_MIC:
 		hs->mic_on = hs->hs_on = (key_code != HS_REL_K) ? 1 : 0;
@@ -463,47 +467,42 @@ static struct msm_rpc_server hs_rpc_server = {
 //n0p
 struct timespec btime;
 long int curtime, prevtime;
+int filtering=0;
 
-#define KEYDELAY 70
+//#define KEYDELAY 70
 
 static int process_subs_srvc_callback(struct hs_event_cb_recv *recv)
 {
 	if (!recv)
 		return -ENODATA;
 
+//
 //n0p - disable dejitter 
 //	report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
 //	return 0;
 //--
+//key_parm == HS_REL_K
 
+
+        mdelay(1);
 	getnstimeofday(&btime);
-
         curtime = btime.tv_sec & 0xFFFFF;
-
 	curtime = (btime.tv_sec * 1000) + (btime.tv_nsec/1000000);
 
-        //printk("DSC: curtime: %d",btime.tv_sec);
+	if ((curtime-prevtime)>keyfilter) { filtering=0; printk ("DSC hs: %ld",curtime-prevtime); };
+	if ((curtime-prevtime)<0) filtering=0;
 
-	if ((curtime-prevtime)>KEYDELAY) {
-                //filteron=0;
-		prevtime=curtime;
+        printk ("DSC hs filter state: %d",filtering);
+
+	if (!filtering) { 
 		report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
-                //errorcount=0;
+		if (be32_to_cpu(recv->key.parm)==HS_REL_K) filtering=1;
+		prevtime=curtime;
+		printk ("DSC hs filter on");
 		return 0;
-	}
+	};
 
-	//Stale timer workaround
-	if ((curtime-prevtime)<=0) {
-	//errorcount++;
-	//disarm filter
-	//if (errorcount>0) { prevtime=curtime; report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm)); errorcount=0; };
-	prevtime=curtime;
-        report_hs_key(be32_to_cpu(recv->key.code), be32_to_cpu(recv->key.parm));
-        //printk("DSC: DJT: Timer error count: %d", errorcount);
-	return 0;
-	}
-
-	return 0;
+return -ENODATA;
 
 }
 

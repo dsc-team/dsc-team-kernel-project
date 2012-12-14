@@ -191,22 +191,24 @@ module_param(dhd_sysioc, uint, 0);
 
 /* Watchdog frequency */
 #ifdef FTP_FIX
+//uint dhd_watchdog_ms = 1000;
+//n0p 1 sec (now simply configurable, need method)
 uint dhd_watchdog_ms = 1000;
 #else
 uint dhd_watchdog_ms = 10;
 #endif /* FTP_FIX */
-module_param(dhd_watchdog_ms, uint, 0);
-
+module_param(dhd_watchdog_ms, uint, 0644);
 
 /* Watchdog thread priority, -1 to use kernel timer */
 int dhd_watchdog_prio = 97;
+//int dhd_watchdog_prio = -1;
 module_param(dhd_watchdog_prio, int, 0);
 
 /* DPC thread priority, -1 to use tasklet */
 int dhd_dpc_prio = 98;
+//int dhd_dpc_prio = -1;
 module_param(dhd_dpc_prio, int, 0);
 
-/* DPC thread priority, -1 to use tasklet */
 extern int dhd_dongle_memsize;
 module_param(dhd_dongle_memsize, int, 0);
 
@@ -248,7 +250,8 @@ module_param(dhd_intr, uint, 0);
 
 /* SDIO Drive Strength (in milliamps) */
 uint dhd_sdiod_drive_strength = 6;
-module_param(dhd_sdiod_drive_strength, uint, 0);
+//n0p - userspace config enable
+module_param(dhd_sdiod_drive_strength, uint, 0644);
 
 /* Tx/Rx bounds */
 extern uint dhd_txbound;
@@ -1066,7 +1069,7 @@ dhd_watchdog_thread(void *data)
 	if (dhd_watchdog_prio > 0)
 	{
 //n0p
-#if 0
+#if 1
 		struct sched_param param;
 		param.sched_priority = (dhd_watchdog_prio < MAX_RT_PRIO)?
 			dhd_watchdog_prio:(MAX_RT_PRIO-1);
@@ -1149,7 +1152,7 @@ dhd_dpc_thread(void *data)
 	if (dhd_dpc_prio > 0)
 	{
 //n0p
-#if 0
+#if 1
 		struct sched_param param;
 		param.sched_priority = (dhd_dpc_prio < MAX_RT_PRIO)?dhd_dpc_prio:(MAX_RT_PRIO-1);
 		setScheduler(current, SCHED_FIFO, &param);

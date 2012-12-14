@@ -532,7 +532,8 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os -mfpu=neon -march=armv7-a
 else
-KBUILD_CFLAGS	+= -O2 -mfpu=neon -march=armv7-a
+#KBUILD_CFLAGS	+= -O3 -mfpu=neon -march=armv7-a
+KBUILD_CFLAGS   += -O2 -mfpu=neon -march=armv7-a -funsafe-math-optimizations -mvectorize-with-neon-quad -fno-gcse -fprefetch-loop-arrays
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
