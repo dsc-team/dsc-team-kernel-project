@@ -28,9 +28,8 @@
  *	'ptr' to the next word. The 'abort' argument is used for fixup tables.
  *
  * ldr4w ptr reg1 reg2 reg3 reg4 abort
- * ldr8w ptr, reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 abort
  *
- *	This loads four or eight words starting from 'ptr', stores them
+ *	This loads eight words starting from 'ptr', stores them
  *	in provided registers and increments 'ptr' past those words.
  *	The'abort' argument is used for fixup tables.
  *
@@ -46,6 +45,10 @@
  *
  *	Same as their ldr* counterparts, but data is stored to 'ptr' location
  *	rather than being loaded.
+ *
+ * cpy8w src dst reg1 reg2 abort
+ *	This loads eight words starting from 'src' and stores them to 'dst'.
+ *	The 'abort' argument is used for fixup tables.
  *
  * enter reg1 reg2
  *
@@ -97,9 +100,8 @@
 	PLD(	pld	[r1, #92]		)
 
 3:	PLD(	pld	[r1, #124]		)
-4:		ldr8w	r1, r3, r4, r5, r6, r7, r8, ip, lr, abort=20f
+4:		cpy8w   r0, r1, r4, r5, abort=20f
 		subs	r2, r2, #32
-		str8w	r0, r3, r4, r5, r6, r7, r8, ip, lr, abort=20f
 		bge	3b
 	PLD(	cmn	r2, #96			)
 	PLD(	bge	4b			)
