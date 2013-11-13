@@ -117,6 +117,9 @@ config DECOMPRESS_BZIP2
 config DECOMPRESS_LZMA
 	tristate
 
+config DECOMPRESS_XZ
+	tristate
+
 config DECOMPRESS_LZO
 	select LZO_DECOMPRESS
 	tristate
