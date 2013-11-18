@@ -324,7 +324,7 @@ static int msm_pmem_table_add(struct hlist_head *ptype,
 		__func__,
 		info->type, paddr, (unsigned long)info->vaddr);
 
-	region = kmalloc(sizeof(struct msm_pmem_region), GFP_KERNEL);
+	region = kzalloc(sizeof(struct msm_pmem_region), GFP_KERNEL);
 	if (!region)
 		return -ENOMEM;
 
@@ -677,6 +677,13 @@ static struct msm_queue_cmd *__msm_control(struct msm_sync *sync,
 			rc = -ETIMEDOUT;
 		if (rc < 0) {
 			pr_err("%s: wait_event error %d\n", __func__, rc);
+			/* HTC */
+			/* qcmd may be still on the event_q, in which case we
+			 * need to remove it.  Alternatively, qcmd may have
+			 * been dequeued and processed already, in which case
+			 * the list removal will be a no-op.
+			*/
+			list_del_init(&qcmd->list_config);
 			return ERR_PTR(rc);
 		}
 	}
@@ -699,7 +706,7 @@ static struct msm_queue_cmd *__msm_control_nb(struct msm_sync *sync,
 	struct msm_ctrl_cmd *udata_to_copy = qcmd_to_copy->command;
 
 	struct msm_queue_cmd *qcmd =
-			kmalloc(sizeof(*qcmd_to_copy) +
+			kzalloc(sizeof(*qcmd_to_copy) +
 				sizeof(*udata_to_copy) +
 				udata_to_copy->length,
 				GFP_KERNEL);
@@ -1766,7 +1773,7 @@ static int msm_set_crop(struct msm_sync *sync, void __user *arg)
 	}
 
 	if (!sync->croplen) {
-		sync->cropinfo = kmalloc(crop.len, GFP_KERNEL);
+		sync->cropinfo = kzalloc(crop.len, GFP_KERNEL);
 		if (!sync->cropinfo)
 			return -ENOMEM;
 	} else if (sync->croplen < crop.len)
@@ -2203,7 +2210,7 @@ static void *msm_vfe_sync_alloc(int size,
 			gfp_t gfp)
 {
 	struct msm_queue_cmd *qcmd =
-		kmalloc(sizeof(struct msm_queue_cmd) + size, gfp);
+		kzalloc(sizeof(struct msm_queue_cmd) + size, gfp);
 	if (qcmd) {
 		atomic_set(&qcmd->on_heap, 1);
 		return qcmd + 1;
@@ -2459,7 +2466,7 @@ static int msm_open_control(struct inode *inode, struct file *filep)
 	int rc;
 
 	struct msm_control_device *ctrl_pmsm =
-		kmalloc(sizeof(struct msm_control_device), GFP_KERNEL);
+		kzalloc(sizeof(struct msm_control_device), GFP_KERNEL);
 	if (!ctrl_pmsm)
 		return -ENOMEM;
 
@@ -2491,7 +2498,7 @@ static int __msm_v4l2_control(struct msm_sync *sync,
 	struct msm_device_queue *v4l2_ctrl_q = &g_v4l2_control_device->ctrl_q;
 
 	/* wake up config thread, 4 is for V4L2 application */
-	qcmd = kmalloc(sizeof(struct msm_queue_cmd), GFP_KERNEL);
+	qcmd = kzalloc(sizeof(struct msm_queue_cmd), GFP_KERNEL);
 	if (!qcmd) {
 		pr_err("%s: cannot allocate buffer\n", __func__);
 		rc = -ENOMEM;
