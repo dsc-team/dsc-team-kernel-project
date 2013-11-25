@@ -60,6 +60,7 @@ struct  msm_control_device *g_v4l2_control_device;
 int g_v4l2_opencnt;
 
 #ifdef AUSTIN_CAMERA
+static int camera_node;
 static struct device *austin_dev;
 static int austin_sid = 0;
 int austin_cnt = 0;
@@ -2011,6 +2012,50 @@ static long msm_ioctl_frame(struct file *filep, unsigned int cmd,
 }
 
 
+#ifdef AUSTIN_CAMERA
+struct msm_camera_info {
+        int num_cameras;
+        uint8_t has_3d_support[MSM_MAX_CAMERA_SENSORS];
+        uint8_t is_internal_cam[MSM_MAX_CAMERA_SENSORS];
+};
+
+static int msm_get_camera_info(void __user *arg)
+{
+	int rc = 0;
+	int i = 0;
+	struct msm_camera_info info;
+
+	if (copy_from_user(&info,
+			arg,
+			sizeof(struct msm_camera_info))) {
+		ERR_COPY_FROM_USER();
+		return -EFAULT;
+	}
+
+	CDBG("%s: camera_node %d\n", __func__, camera_node);
+	info.num_cameras = camera_node;
+	for (i = 0; i < camera_node; i++) {
+		info.has_3d_support[i] = 0; // noone has 3D support here
+		info.is_internal_cam[i] = 0;
+
+		if(i==1) // Front-Facing-Camera
+		{
+			info.is_internal_cam[i] = 1;
+		}
+	}
+
+	/* copy back to user space */
+	if (copy_to_user((void *)arg,
+			&info,
+			sizeof(struct msm_camera_info))) {
+		ERR_COPY_TO_USER();
+		rc = -EFAULT;
+	}
+
+	return rc;
+}
+#endif
+
 static long msm_ioctl_control(struct file *filep, unsigned int cmd,
 	unsigned long arg)
 {
@@ -2044,6 +2089,15 @@ static long msm_ioctl_control(struct file *filep, unsigned int cmd,
 	case MSM_CAM_IOCTL_GET_SENSOR_INFO:
 		rc = msm_get_sensor_info(pmsm->sync, argp);
 		break;
+
+#ifdef AUSTIN_CAMERA
+#define MSM_CAM_IOCTL_GET_CAMERA_INFO \
+	_IOR(MSM_CAM_IOCTL_MAGIC, 36, struct msm_camera_info *)
+	case MSM_CAM_IOCTL_GET_CAMERA_INFO:
+		rc = msm_get_camera_info(argp);
+		break;
+#endif
+
 #ifdef AUSTIN_CAMERA
 	case MSM_CAM_IOCTL_SENSOR_IO_CFG:
 		rc = pmsm->sync->sctrl.s_config(argp);
@@ -2062,6 +2116,7 @@ static long msm_ioctl_control(struct file *filep, unsigned int cmd,
 	}
 #endif
 	default:
+		CDBG("msm_ioctl_control: unknown command %d\n",cmd);
 		rc = msm_ioctl_common(pmsm, cmd, argp);
 		break;
 	}
@@ -2740,7 +2795,9 @@ int msm_camera_drv_start(struct platform_device *dev,
 	struct msm_device *pmsm = NULL;
 	struct msm_sync *sync;
 	int rc = -ENODEV;
+#ifndef AUSTIN_CAMERA
 	static int camera_node;
+#endif
 
 	if (camera_node >= MSM_MAX_CAMERA_SENSORS) {
 		pr_err("%s: too many camera sensors\n", __func__);
